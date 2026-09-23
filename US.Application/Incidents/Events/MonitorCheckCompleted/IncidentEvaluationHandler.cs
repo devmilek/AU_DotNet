@@ -22,7 +22,7 @@ public class IncidentEvaluationHandler
 
             if (reachedThreshold && openIncident is null)
             {
-                var incident = Incident.Open(monitor.Id, @event.CheckedAt, monitor.ConsecutiveFailures);
+                var incident = Incident.Open(monitor.Id, @event.CheckedAt, monitor.State.ConsecutiveFailures);
                 incidentRepository.Add(incident);
                 openedIncidentId = incident.Id;
             }

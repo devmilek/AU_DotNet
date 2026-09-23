@@ -22,7 +22,7 @@ public class NotificationDispatchHandler()
             var model = new IncidentOpenedModel(
                 MonitorName: monitor.Name,
                 StartedAt: @event.OccurredAt.ToString("yyyy-MM-dd HH:mm"),
-                FailedChecksCount: monitor.ConsecutiveFailures,
+                FailedChecksCount: monitor.State.ConsecutiveFailures,
                 MonitorUrl: $"https://app.example.com/monitors/{monitor.Id}"
             );
 

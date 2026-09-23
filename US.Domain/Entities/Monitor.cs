@@ -8,7 +8,6 @@ public class Monitor
     private const int MinTimeoutMs = 100;
 
     public Guid Id { get; private set; }
-    public Guid? ClaimToken { get; set; }
     public string Name { get; private set; } = null!;
     public string Target { get; private set; } = null!;
 
@@ -21,15 +20,14 @@ public class Monitor
 
     public bool NotifyOnRecovery { get; private set; }
 
-    public int ConsecutiveSuccesses { get; private set; }
-    public int ConsecutiveFailures { get; private set; }
     public bool IsActive { get; private set; }
     
     public Guid OrganizationId { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
-    public DateTimeOffset NextCheckAt { get; private set; }
+
+    public MonitorState State { get; private set; } = null!;
 
     private Monitor() { }
 
@@ -57,10 +55,11 @@ public class Monitor
         ValidateThreshold(recoveryThreshold, nameof(recoveryThreshold));
 
         var now = DateTimeOffset.UtcNow;
+        var id = Guid.NewGuid();
 
         return new Monitor
         {
-            Id = Guid.NewGuid(),
+            Id = id,
             OrganizationId = organizationId,
             Name = name.Trim(),
             Target = target.Trim(),
@@ -70,18 +69,16 @@ public class Monitor
             AlertThreshold = alertThreshold,
             RecoveryThreshold = recoveryThreshold,
             NotifyOnRecovery = notifyOnRecovery,
-            ConsecutiveFailures = 0,
             IsActive = true,
             CreatedAt = now,
             UpdatedAt = now,
-            NextCheckAt = now
+            State = MonitorState.Create(id, now)
         };
     }
     
     public void ScheduleNextCheck(DateTimeOffset now)
     {
-        NextCheckAt = now.AddSeconds(IntervalSeconds);
-        Touch();
+        State.ScheduleNextCheck(now, IntervalSeconds);
     }
 
     public void Rename(string name)
@@ -133,11 +130,9 @@ public class Monitor
         if (!IsActive)
             throw new InvalidOperationException("Nie można rejestrować checków dla nieaktywnego monitora.");
 
-        ConsecutiveSuccesses = 0;
-        ConsecutiveFailures++;
-        Touch();
+        State.RecordFailure();
 
-        return ConsecutiveFailures >= AlertThreshold;
+        return State.ConsecutiveFailures >= AlertThreshold;
     }
 
     /// <summary>
@@ -149,11 +144,9 @@ public class Monitor
         if (!IsActive)
             throw new InvalidOperationException("Nie można rejestrować checków dla nieaktywnego monitora.");
 
-        ConsecutiveFailures = 0;
-        ConsecutiveSuccesses++;
-        Touch();
+        State.RecordSuccess();
 
-        return ConsecutiveSuccesses == RecoveryThreshold;
+        return State.ConsecutiveSuccesses == RecoveryThreshold;
     }
 
     public void Activate()
@@ -167,7 +160,7 @@ public class Monitor
     {
         if (!IsActive) return;
         IsActive = false;
-        ConsecutiveFailures = 0;
+        State.ResetCounters();
         Touch();
     }
 

@@ -11,6 +11,7 @@ namespace US.Infrastructure.Persistence;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUserContext<ApplicationUser, Guid>(options), IDataProtectionKeyContext
 {
     public DbSet<Monitor> Monitors => Set<Monitor>();
+    public DbSet<MonitorState> MonitorStates => Set<MonitorState>();
     public DbSet<Check> MonitorChecks => Set<Check>();
     public DbSet<Incident> Incidents => Set<Incident>();
     public DbSet<IncidentNotification> IncidentNotifications => Set<IncidentNotification>();

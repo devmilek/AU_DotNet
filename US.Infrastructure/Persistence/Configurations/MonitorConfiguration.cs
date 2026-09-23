@@ -45,10 +45,6 @@ public sealed class MonitorConfiguration : IEntityTypeConfiguration<Monitor>
             .IsRequired()
             .HasDefaultValue(true);
 
-        builder.Property(m => m.ConsecutiveFailures)
-            .IsRequired()
-            .HasDefaultValue(0);
-
         builder.Property(m => m.IsActive)
             .IsRequired()
             .HasDefaultValue(true);
@@ -60,6 +56,10 @@ public sealed class MonitorConfiguration : IEntityTypeConfiguration<Monitor>
         builder.Property(m => m.UpdatedAt)
             .IsRequired()
             .HasDefaultValueSql("now()");
+
+        builder.Navigation(m => m.State)
+            .IsRequired()
+            .AutoInclude();
 
         builder.HasIndex(m => m.IsActive);
         
