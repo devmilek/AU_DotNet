@@ -4,9 +4,11 @@ using US.Api.Controllers.Monitors.Requests;
 using US.Application.Channels.Commands.AssignChannelToMonitor;
 using US.Application.Channels.Commands.SendTestNotification;
 using US.Application.Channels.Commands.UnassignChannelFromMonitor;
+using US.Application.Common;
 using US.Application.Monitors.Commands.CreateMonitor;
 using US.Application.Monitors.Queries.GetAllMonitors;
 using US.Application.Monitors.Queries.GetMonitor;
+using US.Domain.Enums;
 using Wolverine;
 using Monitor = US.Domain.Entities.Monitor;
 
@@ -32,10 +34,35 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
     }
     
     [HttpGet(Name = "GetAllMonitors")]
-    [ProducesResponseType<IReadOnlyList<Monitor>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll(Guid orgId)
+    [ProducesResponseType<PagedResult<Monitor>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll(Guid orgId, [FromQuery] GetMonitorsRequest request)
     {
-        var monitors = await bus.InvokeAsync<IReadOnlyList<Monitor>>(new GetAllMonitorsQuery(orgId));
+        var types = new List<MonitorType>();
+        foreach (var value in (request.Type ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!Enum.TryParse<MonitorType>(value, ignoreCase: true, out var type) || !Enum.IsDefined(type))
+            {
+                ModelState.AddModelError(nameof(request.Type), $"Nieznany typ monitora: '{value}'.");
+                continue;
+            }
+            types.Add(type);
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return ValidationProblem(ModelState);
+        }
+
+        var query = new GetAllMonitorsQuery(
+            orgId,
+            request.Page,
+            request.PageSize,
+            request.SortBy,
+            request.SortOrder,
+            types,
+            request.Search);
+
+        var monitors = await bus.InvokeAsync<PagedResult<Monitor>>(query);
         return Ok(monitors);
     }
 
