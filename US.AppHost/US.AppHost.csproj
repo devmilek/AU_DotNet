@@ -1,0 +1,26 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.5.4">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AspireUseCliBundle>true</AspireUseCliBundle>
+        <UserSecretsId>c8c7182b-be59-42d9-94d6-31a9d5f46481</UserSecretsId>
+        <RootNamespace>CCS.AppHost</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\US.Api\US.Api.csproj" />
+      <ProjectReference Include="..\US.CheckScheduler\US.CheckScheduler.csproj" />
+      <ProjectReference Include="..\US.CheckWorker\US.CheckWorker.csproj" />
+      <ProjectReference Include="..\US.NotificationWorker\US.NotificationWorker.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Aspire.Hosting.JavaScript" Version="13.5.4" />
+      <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="13.5.4" />
+      <PackageReference Include="Aspire.Hosting.RabbitMQ" Version="13.5.4" />
+    </ItemGroup>
+
+</Project>

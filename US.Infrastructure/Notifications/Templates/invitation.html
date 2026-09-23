@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <style>
+        .container { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; }
+        .header { background: #2563eb; color: white; padding: 16px; border-radius: 4px 4px 0 0; }
+        .body { padding: 24px; border: 1px solid #e5e5e5; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>Zaproszenie do organizacji</h2>
+    </div>
+    <div class="body">
+        <p><strong>{{ invited_by_name | html.escape }}</strong> zaprasza Cię do organizacji
+            <strong>{{ organization_name | html.escape }}</strong> w roli {{ role | html.escape }}.</p>
+        <p><a href="{{ invitation_url | html.escape }}">Przyjmij zaproszenie</a></p>
+        <p>Zaproszenie jest ważne do {{ expires_at }}. Jeśli nie spodziewasz się tej wiadomości, zignoruj ją.</p>
+    </div>
+</div>
+</body>
+</html>

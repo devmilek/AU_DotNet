@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; }
+        .header { background: #dc2626; color: white; padding: 16px; border-radius: 4px 4px 0 0; }
+        .body { padding: 24px; border: 1px solid #e5e5e5; }
+        .badge { display: inline-block; padding: 4px 12px; background: #fee2e2; color: #991b1b; border-radius: 4px; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h2>🔴 Monitor niedostępny</h2>
+    </div>
+    <div class="body">
+        <p><span class="badge">DOWN</span></p>
+        <p><strong>{{monitorName}}</strong> nie odpowiada od {{startedAt}}.</p>
+        <p>Liczba nieudanych sprawdzeń: {{ FailedCheckCount }}</p>
+        <p><a href="{{monitorUrl}}">Zobacz szczegóły monitora</a></p>
+    </div>
+</div>
+</body>
+</html>

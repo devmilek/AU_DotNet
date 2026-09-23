@@ -1,0 +1,23 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.DotSettings.user
+.vs/
+TestResults/
+
+# JetBrains / IDE
+.idea/
+
+# Claude Code local settings
+.claude/settings.local.json
+
+# macOS
+.DS_Store
+
+# Secrets / env
+.env*
+*.pem
+*.key
+web/.certs/

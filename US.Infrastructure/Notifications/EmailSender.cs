@@ -1,0 +1,46 @@
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MimeKit;
+using US.Application.Notifications;
+
+namespace US.Infrastructure.Notifications;
+
+public class SmtpEmailSender(ILogger<SmtpEmailSender> logger, IOptions<SmtpOptions> options) : IEmailSender
+{
+    public async Task SendAsync(EmailMessage message)
+    {
+        var inlined = PreMailer.Net.PreMailer.MoveCssInline(message.HtmlBody);
+
+        if (inlined.Warnings.Count > 0)
+        {
+            logger.LogWarning("Premailer warnings dla wiadomości {Subject}: {Warnings}",
+                message.Subject, string.Join("; ", inlined.Warnings));
+        }
+        
+        var mime = new MimeMessage();
+        mime.From.Add(MailboxAddress.Parse(options.Value.FromAddress));
+        foreach (var to in message.To)
+            mime.To.Add(MailboxAddress.Parse(to));
+        mime.Subject = message.Subject;
+        mime.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = inlined.Html };
+
+        try
+        {
+            using var client = new SmtpClient();
+            client.CheckCertificateRevocation = false;
+            // Auto: SSL dla portu 465, STARTTLS jeśli serwer go oferuje (Resend 587), plain dla Mailpit
+            await client.ConnectAsync(options.Value.Host, options.Value.Port, SecureSocketOptions.Auto);
+            await client.AuthenticateAsync(options.Value.Username, options.Value.Password);
+            await client.SendAsync(mime);
+            await client.DisconnectAsync(true);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Błąd wysyłki wiadomości e-mail do {Recipients} (temat: {Subject})",
+                string.Join(", ", message.To), message.Subject);
+            throw;
+        }
+    }
+}
