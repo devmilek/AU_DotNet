@@ -7,6 +7,8 @@ using US.Application.Channels.Commands.SendTestNotification;
 using US.Application.Channels.Commands.UnassignChannelFromMonitor;
 using US.Application.Common;
 using US.Application.Monitors.Commands.CreateMonitor;
+using US.Application.Monitors.Commands.PauseMonitor;
+using US.Application.Monitors.Commands.ResumeMonitor;
 using US.Application.Monitors.Queries.GetAllMonitors;
 using US.Application.Monitors.Queries.GetMonitor;
 using US.Domain.Enums;
@@ -35,7 +37,7 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
     }
     
     [HttpGet(Name = "GetAllMonitors")]
-    [ProducesResponseType<PagedResult<MonitorResponse>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedResult<MonitorListItemResponse>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(Guid orgId, [FromQuery] GetMonitorsRequest request)
     {
         var types = new List<MonitorType>();
@@ -63,9 +65,9 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
             types,
             request.Search);
 
-        var monitors = await bus.InvokeAsync<PagedResult<Monitor>>(query);
-        return Ok(new PagedResult<MonitorResponse>(
-            monitors.Items.Select(MonitorResponse.From).ToList(),
+        var monitors = await bus.InvokeAsync<PagedResult<MonitorListItem>>(query);
+        return Ok(new PagedResult<MonitorListItemResponse>(
+            monitors.Items.Select(MonitorListItemResponse.From).ToList(),
             monitors.Page,
             monitors.PageSize,
             monitors.TotalCount));
@@ -79,6 +81,24 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
         var command = new CreateMonitorCommand(orgId, request.Name, request.Type, request.Target, request.IntervalSeconds, request.TimeoutMs, request.AlertThreshold, request.RecoveryThreshold, request.Http);
         var result = await bus.InvokeAsync<Guid>(command);
         return CreatedAtAction(nameof(Get), new { orgId, id = result }, result);
+    }
+
+    [HttpPost("{monitorId:guid}/pause", Name = "PauseMonitor")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> Pause(Guid orgId, Guid monitorId, CancellationToken cancellationToken)
+    {
+        await bus.InvokeAsync(new PauseMonitorCommand(orgId, monitorId), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{monitorId:guid}/resume", Name = "ResumeMonitor")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> Resume(Guid orgId, Guid monitorId, CancellationToken cancellationToken)
+    {
+        await bus.InvokeAsync(new ResumeMonitorCommand(orgId, monitorId), cancellationToken);
+        return NoContent();
     }
 
     [HttpPost("{monitorId:guid}/channels/{channelId:guid}", Name = "AssignChannelToMonitor")]

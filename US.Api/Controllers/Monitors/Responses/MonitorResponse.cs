@@ -1,4 +1,6 @@
+using US.Application.Checks.Statistics;
 using US.Application.Monitors.Commands.CreateMonitor;
+using US.Application.Monitors.Queries.GetAllMonitors;
 using US.Domain.Enums;
 using US.Domain.ValueObjects.Checks;
 using Monitor = US.Domain.Entities.Monitor;
@@ -40,6 +42,27 @@ public sealed record MonitorResponse(
         monitor.CreatedAt,
         monitor.UpdatedAt,
         monitor.Config is HttpCheckConfig http ? HttpCheckConfigResponse.From(http) : null);
+}
+
+/// <summary>Monitor na liście — konfiguracja plus historia checków z ostatnich 24 godzin (od najstarszej).</summary>
+public sealed record MonitorListItemResponse(
+    MonitorResponse Monitor,
+    IReadOnlyList<HourlyCheckSummaryResponse> Last24Hours)
+{
+    public static MonitorListItemResponse From(MonitorListItem item) => new(
+        MonitorResponse.From(item.Monitor),
+        item.Last24Hours.Select(HourlyCheckSummaryResponse.From).ToList());
+}
+
+/// <summary>Checki w jednej godzinie; <c>ExpectedChecks − UpChecks − DownChecks</c> = czas bez danych.</summary>
+public sealed record HourlyCheckSummaryResponse(
+    DateTimeOffset Hour,
+    int UpChecks,
+    int DownChecks,
+    int ExpectedChecks)
+{
+    public static HourlyCheckSummaryResponse From(HourlyCheckSummary summary) =>
+        new(summary.Hour, summary.UpChecks, summary.DownChecks, summary.ExpectedChecks);
 }
 
 public sealed record HttpCheckConfigResponse(

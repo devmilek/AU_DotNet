@@ -11,7 +11,13 @@ public class SmtpEmailSender(ILogger<SmtpEmailSender> logger, IOptions<SmtpOptio
 {
     public async Task SendAsync(EmailMessage message)
     {
-        var inlined = PreMailer.Net.PreMailer.MoveCssInline(message.HtmlBody);
+        // główne style trafiają inline (Gmail/Outlook), a bloki oznaczone data-premailer="ignore"
+        // (media queries: mobile i tryb ciemny, link do fontów) zostają nietknięte w <head>
+        var inlined = PreMailer.Net.PreMailer.MoveCssInline(
+            message.HtmlBody,
+            removeStyleElements: true,
+            ignoreElements: "[data-premailer=ignore]",
+            useEmailFormatter: true);
 
         if (inlined.Warnings.Count > 0)
         {
@@ -24,7 +30,13 @@ public class SmtpEmailSender(ILogger<SmtpEmailSender> logger, IOptions<SmtpOptio
         foreach (var to in message.To)
             mime.To.Add(MailboxAddress.Parse(to));
         mime.Subject = message.Subject;
-        mime.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = inlined.Html };
+        var body = new BodyBuilder { HtmlBody = inlined.Html };
+        if (inlined.Html.Contains($"cid:{EmailAssets.LogoContentId}", StringComparison.Ordinal))
+        {
+            var logo = body.LinkedResources.Add("logo.png", EmailAssets.Logo.Value, new ContentType("image", "png"));
+            logo.ContentId = EmailAssets.LogoContentId;
+        }
+        mime.Body = body.ToMessageBody();
 
         try
         {

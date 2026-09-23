@@ -1,27 +1,38 @@
-using System.Reflection.Metadata;
+using US.Application.Monitors;
 using US.Domain.Entities;
 using US.Domain.Enums;
 using US.Domain.ValueObjects;
 
 namespace US.Application.Channels.Commands.CreateNotificationChannel;
 
-public class CreateNotificationChannelHandler
+public sealed class CreateNotificationChannelHandler
 {
-    public async Task<Guid> Handle(CreateNotificationChannelCommand command, INotificationChannelRepository channelRepository, IUnitOfWork unitOfWork)
+    public async Task<Guid> Handle(
+        CreateNotificationChannelCommand command,
+        INotificationChannelRepository channelRepository,
+        IMonitorNotificationChannelRepository linkRepository,
+        IMonitorRepository monitorRepository,
+        IUnitOfWork unitOfWork,
+        CancellationToken cancellationToken)
     {
-        var channel = command.Type switch
-        {
-            ChannelType.Email => NotificationChannel.CreateEmail(
-                command.OrganizationId,
-                command.Name,
-                EmailChannelConfig.Create(command.EmailTo!)),
-
-            _ => throw new NotSupportedException($"Typ kanału {command.Type} nie jest jeszcze wspierany.")
-        };
-        
+        var channel = NotificationChannel.Create(command.OrganizationId, command.Name, ToConfig(command));
         channelRepository.Add(channel);
-        await unitOfWork.SaveChangesAsync();
-        
+
+        var monitorIds = await MonitorAssignment.EnsureMonitorsExistAsync(
+            monitorRepository, command.OrganizationId, command.MonitorIds, cancellationToken);
+        foreach (var monitorId in monitorIds)
+            linkRepository.Add(new MonitorNotificationChannel(monitorId, channel.Id));
+
+        // kanał i przypięcia zapisują się razem albo wcale
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return channel.Id;
     }
+
+    private static ChannelConfig ToConfig(CreateNotificationChannelCommand command) => command.Type switch
+    {
+        ChannelType.Email => EmailChannelConfig.Create(command.Email!.To),
+        // walidator nie przepuści innych typów — ten wyjątek to tylko zabezpieczenie
+        _ => throw new NotSupportedException($"Typ kanału {command.Type} nie jest jeszcze wspierany.")
+    };
 }

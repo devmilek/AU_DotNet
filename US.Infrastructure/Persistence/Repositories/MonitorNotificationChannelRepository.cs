@@ -27,6 +27,27 @@ public class MonitorNotificationChannelRepository(AppDbContext db) : IMonitorNot
             .ToListAsync();
     }
 
+    public async Task<IReadOnlyList<MonitorNotificationChannel>> GetForChannelAsync(
+        Guid channelId,
+        CancellationToken ct = default)
+    {
+        return await db.MonitorNotificationChannels
+            .Where(x => x.NotificationChannelId == channelId)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<MonitorSummary>> GetMonitorsForChannelAsync(
+        Guid channelId,
+        CancellationToken ct = default)
+    {
+        return await db.MonitorNotificationChannels
+            .Where(x => x.NotificationChannelId == channelId)
+            .Join(db.Monitors, link => link.MonitorId, monitor => monitor.Id, (_, monitor) => monitor)
+            .OrderBy(m => m.Name)
+            .Select(m => new MonitorSummary(m.Id, m.Name, m.Type, m.Target, m.IsActive))
+            .ToListAsync(ct);
+    }
+
     public void Add(MonitorNotificationChannel link)
     {
         db.MonitorNotificationChannels.Add(link);

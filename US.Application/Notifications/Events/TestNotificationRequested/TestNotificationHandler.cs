@@ -1,6 +1,8 @@
 using US.Application.Channels;
 using US.Application.Channels.Commands.SendTestNotification;
+using Microsoft.Extensions.Options;
 using US.Application.Monitors;
+using US.Application.Organizations;
 
 namespace US.Application.Notifications.Events.TestNotificationRequested;
 
@@ -10,24 +12,26 @@ public class TestNotificationHandler
         TestNotificationEvent @event,
         IMonitorRepository monitorRepository,
         IMonitorNotificationChannelRepository channelRepository,
-        INotificationSender notificationSender)
+        IOrganizationRepository organizationRepository,
+        INotificationSender notificationSender,
+        IOptions<FrontendOptions> frontendOptions)
     {
         var monitor = await monitorRepository.GetForCheckAsync(@event.MonitorId);
         if (monitor is null)
-            throw new Exception($"Monitor {@event.MonitorId} nie istnieje.");
+            throw new InvalidOperationException($"Monitor {@event.MonitorId} nie istnieje.");
 
         var channels = await channelRepository.GetChannelsForMonitorAsync(@event.MonitorId);
         if (channels.Count == 0) return;
 
-        if (channels.Count == 0)
-            throw new InvalidOperationException("Monitor nie ma przypisanych żadnych kanałów powiadomień.");
-
         var model = new TestNotificationEmailModel(
             MonitorName: monitor.Name,
-            SentAt: @event.RequestedAt.ToString("yyyy-MM-dd HH:mm")
-        );
+            SentAt: @event.RequestedAt.ToString("yyyy-MM-dd HH:mm"),
+            MonitorUrl: await FrontendLinks.MonitorAsync(frontendOptions.Value.FrontendUrl, monitor, organizationRepository));
 
         await notificationSender.SendToChannelsAsync(
-            channels, subject: $"🧪 Testowe powiadomienie — {monitor.Name} | Asterio Uptime", templateName: "test-notification", templateModel: model);
+            channels,
+            subject: $"🧪 Testowe powiadomienie — {monitor.Name} | Asterio Uptime",
+            templateName: "test-notification",
+            templateModel: model);
     }
 }

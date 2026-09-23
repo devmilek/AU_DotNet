@@ -1,23 +1,12 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <style>
-        .container { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; }
-        .header { background: #2563eb; color: white; padding: 16px; border-radius: 4px 4px 0 0; }
-        .body { padding: 24px; border: 1px solid #e5e5e5; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <div class="header">
-        <h2>Potwierdź adres email</h2>
-    </div>
-    <div class="body">
-        <p>Cześć {{ display_name | html.escape }},</p>
-        <p>Kliknij przycisk poniżej, aby potwierdzić swój adres email.</p>
-        <p><a href="{{ confirmation_url | html.escape }}">Potwierdź email</a></p>
-        <p>Link jest ważny przez {{ expires_in_hours }} godzin. Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>
-    </div>
-</div>
-</body>
-</html>
+{{~
+  title = "Potwierdź adres email"
+  preheader = "Potwierdź adres email, aby dokończyć zakładanie konta w Asterio Uptime."
+  footer_note = "Otrzymujesz tę wiadomość, bo ktoś założył konto na ten adres."
+~}}
+<h1 class="title">Potwierdź adres email</h1>
+<p class="text">Cześć {{ display_name | html.escape }},</p>
+<p class="text">dzięki za założenie konta. Kliknij przycisk poniżej, aby potwierdzić, że ten adres należy do Ciebie.</p>
+
+{{ button_url = confirmation_url; button_label = "Potwierdź email"; include "_button" }}
+<hr class="divider">
+<p class="muted">Link jest ważny przez {{ expires_in_hours }} godzin. Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>

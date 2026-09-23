@@ -13,7 +13,7 @@ public class EmailConfirmationHandler
 
         await emailSender.SendAsync(new EmailMessage(
             To: [@event.Email],
-            Subject: "Potwierdź adres email",
+            Subject: "Potwierdź adres email | Asterio Uptime",
             HtmlBody: html));
     }
 }

@@ -1,0 +1,103 @@
+/*
+ * Style, których nie da się zinline'ować — PreMailer zostawia ten blok w <style> (atrybut data-premailer="ignore").
+ * !important jest konieczne, żeby wygrać ze stylami inline.
+ */
+
+@media only screen and (max-width: 600px) {
+  .wrapper-cell {
+    padding: 24px 12px !important;
+  }
+
+  .card-cell {
+    padding: 24px 20px !important;
+  }
+
+  .title {
+    font-size: 21px !important;
+    line-height: 28px !important;
+  }
+
+  .details-label,
+  .details-value {
+    display: block !important;
+    width: auto !important;
+  }
+
+  .details-label {
+    padding-bottom: 0 !important;
+    border-bottom: 0 !important;
+  }
+}
+
+/* tryb ciemny (Apple Mail, iOS, część Outlooka) — kolory motywu .dark z frontu */
+@media (prefers-color-scheme: dark) {
+  body,
+  .wrapper {
+    background-color: #0b0b0d !important;
+    color: #e4e4e7 !important;
+  }
+
+  .frame {
+    background-color: #17171a !important;
+  }
+
+  .card-cell {
+    background-color: #111113 !important;
+    border-color: #2a2a2e !important;
+  }
+
+  .brand-name,
+  .title,
+  .text,
+  .details-value,
+  a {
+    color: #e4e4e7 !important;
+  }
+
+  .muted,
+  .footer-cell,
+  .footer-cell a,
+  .fallback,
+  .fallback-link,
+  .details-label {
+    color: #9c9ca5 !important;
+  }
+
+  .details,
+  .details-label,
+  .details-value {
+    border-color: #2a2a2e !important;
+  }
+
+  .divider {
+    background-color: #2a2a2e !important;
+  }
+
+  /* przycisk primary w .dark jest jasny z ciemnym tekstem */
+  .button-cell,
+  .button {
+    background-color: #e4e4e7 !important;
+    border-color: #e4e4e7 !important;
+    color: #27272a !important;
+  }
+
+  .badge-down {
+    background-color: #2a1215 !important;
+    color: #f87171 !important;
+  }
+
+  .badge-up {
+    background-color: #0d231c !important;
+    color: #34d399 !important;
+  }
+
+  .badge-info {
+    background-color: #111c33 !important;
+    color: #60a5fa !important;
+  }
+
+  .badge-neutral {
+    background-color: #1f1f23 !important;
+    color: #d4d4d8 !important;
+  }
+}

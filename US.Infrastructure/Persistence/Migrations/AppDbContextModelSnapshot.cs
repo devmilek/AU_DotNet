@@ -177,7 +177,7 @@ namespace US.Infrastructure.Persistence.Migrations
 
                     b
                         .HasAnnotation("TimescaleDb:ContinuousAggregate:MaterializedOnly", false)
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:Query", "SELECT time_bucket(INTERVAL '1 hour', c.checked_at) AS \"Bucket\",\n       c.monitor_id AS \"MonitorId\",\n       count(*) AS \"TotalChecks\",\n       count(*) FILTER (WHERE c.status = 'UP') AS \"UpChecks\",\n       count(c.response_time_ms) AS \"ResponseTimeCount\",\n       sum(c.response_time_ms) AS \"ResponseTimeSumMs\",\n       min(c.response_time_ms) AS \"MinResponseTimeMs\",\n       max(c.response_time_ms) AS \"MaxResponseTimeMs\"\nFROM checks AS c\nGROUP BY 1, 2")
+                        .HasAnnotation("TimescaleDb:ContinuousAggregate:Query", "SELECT time_bucket(INTERVAL '1 hour', c.checked_at) AS \"Bucket\",\n       c.monitor_id AS \"MonitorId\",\n       count(*) AS \"TotalChecks\",\n       count(*) FILTER (WHERE c.status = 'UP') AS \"UpChecks\",\n       count(c.response_time_ms) FILTER (WHERE c.status = 'UP') AS \"ResponseTimeCount\",\n       sum(c.response_time_ms) FILTER (WHERE c.status = 'UP') AS \"ResponseTimeSumMs\",\n       min(c.response_time_ms) FILTER (WHERE c.status = 'UP') AS \"MinResponseTimeMs\",\n       max(c.response_time_ms) FILTER (WHERE c.status = 'UP') AS \"MaxResponseTimeMs\"\nFROM checks AS c\nGROUP BY 1, 2")
                         .HasAnnotation("TimescaleDb:ContinuousAggregate:WithNoData", true)
                         .HasAnnotation("TimescaleDb:IsContinuousAggregate", true)
                         .HasAnnotation("TimescaleDb:RefreshPolicy:EndOffset", "01:00:00")

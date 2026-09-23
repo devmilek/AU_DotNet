@@ -3,8 +3,13 @@ using US.Domain.Enums;
 
 namespace US.Application.Channels.Commands.CreateNotificationChannel;
 
-public class CreateNotificationChannelValidator : AbstractValidator<CreateNotificationChannelCommand>
+public sealed class CreateNotificationChannelValidator : AbstractValidator<CreateNotificationChannelCommand>
 {
+    public const int MaxEmailRecipients = 20;
+
+    // na razie tylko email — reszta typów istnieje w domenie, ale nie ma jeszcze wysyłki
+    private static readonly ChannelType[] SupportedTypes = [ChannelType.Email];
+
     public CreateNotificationChannelValidator()
     {
         RuleFor(x => x.OrganizationId)
@@ -15,18 +20,40 @@ public class CreateNotificationChannelValidator : AbstractValidator<CreateNotifi
             .MaximumLength(200);
 
         RuleFor(x => x.Type)
-            .IsInEnum();
+            .IsInEnum()
+            .Must(type => SupportedTypes.Contains(type))
+            .WithMessage(x => $"Typ kanału {x.Type} nie jest jeszcze wspierany.");
+
+        RuleFor(x => x.Email)
+            .Null()
+            .When(x => x.Type != ChannelType.Email)
+            .WithMessage("Ustawienia email są dozwolone tylko dla kanału typu Email.");
 
         When(x => x.Type == ChannelType.Email, () =>
         {
-            RuleFor(x => x.EmailTo)
+            RuleFor(x => x.Email)
                 .NotNull()
-                .Must(to => to!.Count > 0)
-                .WithMessage("Kanał email musi mieć co najmniej jednego adresata.");
+                .WithMessage("Kanał email wymaga listy adresatów.");
 
-            RuleForEach(x => x.EmailTo)
+            RuleFor(x => x.Email!.To)
+                .NotEmpty()
+                .WithMessage("Kanał email musi mieć co najmniej jednego adresata.")
+                .Must(to => to.Count <= MaxEmailRecipients)
+                .WithMessage($"Maksymalnie {MaxEmailRecipients} adresatów.")
+                .Must(to => to.Distinct(StringComparer.OrdinalIgnoreCase).Count() == to.Count)
+                .WithMessage("Adresy email nie mogą się powtarzać.")
+                .When(x => x.Email is not null);
+
+            RuleForEach(x => x.Email!.To)
+                .NotEmpty()
                 .EmailAddress()
-                .When(x => x.EmailTo is not null);
+                .MaximumLength(320)
+                .When(x => x.Email is not null);
         });
+
+        RuleFor(x => x.MonitorIds)
+            .Must(ids => ids!.Count <= MonitorAssignment.MaxMonitorsPerRequest)
+            .WithMessage($"Maksymalnie {MonitorAssignment.MaxMonitorsPerRequest} monitorów naraz.")
+            .When(x => x.MonitorIds is not null);
     }
 }

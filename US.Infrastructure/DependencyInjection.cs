@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
@@ -13,6 +14,7 @@ using US.Application;
 using US.Application.Abstractions;
 using US.Application.Channels;
 using US.Application.Checks;
+using US.Application.Checks.Statistics;
 using US.Application.Monitors;
 using US.Application.Notifications;
 using US.Application.Organizations;
@@ -20,6 +22,7 @@ using US.Infrastructure.Checkers;
 using US.Infrastructure.Identity;
 using US.Infrastructure.Notifications;
 using US.Infrastructure.Persistence;
+using US.Infrastructure.Persistence.Readers;
 using US.Infrastructure.Persistence.Repositories;
 using US.Infrastructure.Security;
 
@@ -88,6 +91,9 @@ public static class DependencyInjection
         services.AddScoped<IInvitationTokenService, InvitationTokenService>();
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddScoped<IMonitorStatisticsReader, MonitorStatisticsReader>();
+        services.TryAddSingleton(TimeProvider.System);
 
         return services;
     }

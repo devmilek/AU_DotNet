@@ -14,6 +14,7 @@ public sealed class MonitorCheckHourlyConfiguration : IEntityTypeConfiguration<M
         builder.HasNoKey();
         builder.ConfigureRollupColumns();
 
+        // czasy odpowiedzi tylko z udanych checków — timeouty i błędy zawyżałyby średnią i maksimum
         // materializedOnly: false = real-time — bieżąca godzina jest doliczana na żywo z surowych checków
         builder.IsContinuousAggregate(
             ViewName,
@@ -22,10 +23,10 @@ public sealed class MonitorCheckHourlyConfiguration : IEntityTypeConfiguration<M
                    c.monitor_id AS "MonitorId",
                    count(*) AS "TotalChecks",
                    count(*) FILTER (WHERE c.status = 'UP') AS "UpChecks",
-                   count(c.response_time_ms) AS "ResponseTimeCount",
-                   sum(c.response_time_ms) AS "ResponseTimeSumMs",
-                   min(c.response_time_ms) AS "MinResponseTimeMs",
-                   max(c.response_time_ms) AS "MaxResponseTimeMs"
+                   count(c.response_time_ms) FILTER (WHERE c.status = 'UP') AS "ResponseTimeCount",
+                   sum(c.response_time_ms) FILTER (WHERE c.status = 'UP') AS "ResponseTimeSumMs",
+                   min(c.response_time_ms) FILTER (WHERE c.status = 'UP') AS "MinResponseTimeMs",
+                   max(c.response_time_ms) FILTER (WHERE c.status = 'UP') AS "MaxResponseTimeMs"
             FROM checks AS c
             GROUP BY 1, 2
             """,

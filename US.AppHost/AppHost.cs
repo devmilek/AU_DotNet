@@ -13,8 +13,10 @@ var postgres = builder
     .WithImage("timescale/timescaledb", "2.30.1-pg18")
     .WithHostPort(5435)
     // osobny wolumen: obraz dopisuje timescaledb do shared_preload_libraries tylko przy inicjalizacji klastra,
-    // więc stary wolumen z czystego Postgresa by go nie załadował
-    .WithDataVolume("uptime-timescaledb-data")
+    // więc stary wolumen z czystego Postgresa by go nie załadował.
+    // WithVolume zamiast WithDataVolume: przy własnym obrazie Aspire montuje /var/lib/postgresql/data,
+    // a obrazy Postgres 18+ trzymają dane w /var/lib/postgresql/18/docker i odmawiają startu z mountem pod starą ścieżką
+    .WithVolume("uptime-timescaledb-data", "/var/lib/postgresql")
     .WithLifetime(ContainerLifetime.Persistent);
 
 var db = postgres.AddDatabase("app");

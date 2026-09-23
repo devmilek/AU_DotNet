@@ -1,0 +1,10 @@
+{{~ # przycisk + link zapasowy; przed include ustaw button_url i button_label ~}}
+<table role="presentation" class="button-table" cellpadding="0" cellspacing="0">
+    <tr>
+        <td class="button-cell">
+            <a class="button" href="{{ button_url | html.escape }}" target="_blank">{{ button_label | html.escape }}</a>
+        </td>
+    </tr>
+</table>
+<p class="fallback">Przycisk nie działa? Skopiuj ten link do przeglądarki:</p>
+<p class="fallback"><a class="fallback-link" href="{{ button_url | html.escape }}">{{ button_url | html.escape }}</a></p>

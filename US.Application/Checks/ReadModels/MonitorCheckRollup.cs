@@ -13,6 +13,7 @@ public abstract class MonitorCheckRollup
     public long TotalChecks { get; private set; }
     public long UpChecks { get; private set; }
 
+    /// <summary>Liczba udanych checków z czasem odpowiedzi (nieudane nie wchodzą do statystyk czasu).</summary>
     public long ResponseTimeCount { get; private set; }
     public long? ResponseTimeSumMs { get; private set; }
     public int? MinResponseTimeMs { get; private set; }

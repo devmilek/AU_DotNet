@@ -8,6 +8,8 @@
 
     <ItemGroup>
         <EmbeddedResource Include="Notifications\Templates\**\*.html" />
+        <EmbeddedResource Include="Notifications\Templates\**\*.css" />
+        <EmbeddedResource Include="Notifications\Templates\**\*.png" />
     </ItemGroup>
 
     <ItemGroup>

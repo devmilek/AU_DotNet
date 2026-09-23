@@ -14,6 +14,14 @@ public sealed class IncidentRepository(AppDbContext db) : IIncidentRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<Incident?> GetLastResolvedForMonitorAsync(Guid monitorId)
+    {
+        return await db.Incidents
+            .Where(i => i.MonitorId == monitorId && i.Status == IncidentStatus.Resolved)
+            .OrderByDescending(i => i.ResolvedAt)
+            .FirstOrDefaultAsync();
+    }
+
     public void Add(Incident incident)
     {
         db.Incidents.Add(incident);

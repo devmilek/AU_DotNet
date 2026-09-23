@@ -1,8 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using US.Application.Checks;
-using US.Application.Monitors;
 using US.Domain.Entities;
-using Monitor = US.Domain.Entities.Monitor;
 
 namespace US.Infrastructure.Persistence.Repositories;
 

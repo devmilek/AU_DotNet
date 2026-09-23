@@ -15,7 +15,7 @@ public class AssingChannelToMonitorHandler
         if (channel is null) throw new NotFoundException("Kanał powiadomień", command.ChannelId);
 
         var alreadyExists = await monitorNotificationChannelRepository.ExistsAsync(monitor.Id, channel.Id);
-        if (alreadyExists) throw new InvalidOperationException($"Channel with id {command.ChannelId} is already assigned to monitor with id {command.MonitorId}.");
+        if (alreadyExists) throw new ConflictException($"Kanał {command.ChannelId} jest już przypięty do monitora {command.MonitorId}.");
 
         monitorNotificationChannelRepository.Add(new MonitorNotificationChannel(monitor.Id, channel.Id));
         

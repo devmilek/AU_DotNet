@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using US.Api.Controllers.Auth.Requests;
 using US.Api.RateLimiting;
 using US.Application.Notifications.Events.EmailConfirmationRequested;
@@ -15,7 +16,7 @@ namespace US.Api.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, IWebHostEnvironment env, IMessageBus bus, ILogger<AuthController> logger) : ControllerBase
+public class AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration, IWebHostEnvironment env, IMessageBus bus, IOptions<PasswordResetTokenProviderOptions> passwordResetOptions, ILogger<AuthController> logger) : ControllerBase
 {
     [HttpPost("register")]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
@@ -128,7 +129,8 @@ public class AuthController(UserManager<ApplicationUser> userManager, SignInMana
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var url = $"{configuration["Auth:FrontendUrl"]}/reset-password?userId={user.Id}&token={encodedToken}";
 
-            await bus.PublishAsync(new PasswordResetRequestedEvent(user.Email!, user.DisplayName, url));
+            await bus.PublishAsync(new PasswordResetRequestedEvent(
+                user.Email!, user.DisplayName, url, (int)passwordResetOptions.Value.TokenLifespan.TotalMinutes));
         }
 
         return Accepted();

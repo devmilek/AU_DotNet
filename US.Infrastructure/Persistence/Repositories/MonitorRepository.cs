@@ -74,6 +74,19 @@ public sealed class MonitorRepository(AppDbContext db) : IMonitorRepository
         return new PagedResult<Monitor>(items, query.Page, query.PageSize, totalCount);
     }
 
+    public async Task<IReadOnlySet<Guid>> GetExistingIdsAsync(
+        Guid organizationId,
+        IReadOnlyCollection<Guid> monitorIds,
+        CancellationToken ct = default)
+    {
+        var ids = await db.Monitors
+            .Where(x => x.OrganizationId == organizationId && monitorIds.Contains(x.Id))
+            .Select(x => x.Id)
+            .ToListAsync(ct);
+
+        return ids.ToHashSet();
+    }
+
     public async Task<Monitor?> GetForCheckAsync(
         Guid monitorId,
         CancellationToken ct = default)
