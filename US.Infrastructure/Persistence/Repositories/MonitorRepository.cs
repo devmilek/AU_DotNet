@@ -22,6 +22,7 @@ public sealed class MonitorRepository(AppDbContext db) : IMonitorRepository
         CancellationToken ct = default)
     {
         return await db.Monitors
+            .Include(x => x.State)
             .FirstOrDefaultAsync(
                 x => x.Id == monitorId && x.OrganizationId == organizationId,
                 ct);
@@ -78,6 +79,7 @@ public sealed class MonitorRepository(AppDbContext db) : IMonitorRepository
         CancellationToken ct = default)
     {
         return await db.Monitors
+            .Include(x => x.State)
             .FirstOrDefaultAsync(
                 x => x.Id == monitorId,
                 ct);

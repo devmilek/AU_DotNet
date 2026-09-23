@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using US.Domain.Enums;
 
 namespace US.Domain.Entities;
@@ -27,6 +28,8 @@ public class Monitor
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
+    // stan runtime jest wewnętrzny — nie wystawiamy go w API
+    [JsonIgnore]
     public MonitorState State { get; private set; } = null!;
 
     private Monitor() { }

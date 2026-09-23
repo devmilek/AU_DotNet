@@ -58,8 +58,7 @@ public sealed class MonitorConfiguration : IEntityTypeConfiguration<Monitor>
             .HasDefaultValueSql("now()");
 
         builder.Navigation(m => m.State)
-            .IsRequired()
-            .AutoInclude();
+            .IsRequired();
 
         builder.HasIndex(m => m.IsActive);
         
