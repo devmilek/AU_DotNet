@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -20,6 +21,7 @@ using US.Infrastructure.Identity;
 using US.Infrastructure.Notifications;
 using US.Infrastructure.Persistence;
 using US.Infrastructure.Persistence.Repositories;
+using US.Infrastructure.Security;
 
 namespace US.Infrastructure;
 
@@ -32,6 +34,21 @@ public static class DependencyInjection
         return builder;
     }
     
+    /// <summary>
+    /// Wspólny key ring Data Protection (klucze w bazie) — API szyfruje nim sekrety monitorów,
+    /// a CheckWorker je odszyfrowuje, więc nazwa aplikacji i magazyn kluczy muszą być identyczne.
+    /// </summary>
+    public static IServiceCollection AddAppDataProtection(this IServiceCollection services)
+    {
+        services.AddDataProtection()
+            .SetApplicationName("UptimeStatus")
+            .PersistKeysToDbContext<AppDbContext>();
+
+        services.AddSingleton<ISecretProtector, DataProtectionSecretProtector>();
+
+        return services;
+    }
+
     public static IdentityBuilder AddIdentityPersistence(this IServiceCollection services)
     {
         services.AddScoped<IUserLookup, UserLookup>();
@@ -75,7 +92,10 @@ public static class DependencyInjection
     
     public static IServiceCollection AddCheckers(this IServiceCollection services)
     {
-        services.AddHttpClient<HttpMonitorChecker>();
+        // timeout pilnuje checker (TimeoutMs monitora), więc HttpClient.Timeout nie może go uprzedzić
+        services.AddHttpClient(HttpMonitorChecker.FollowRedirectsClient, c => c.Timeout = Timeout.InfiniteTimeSpan);
+        services.AddHttpClient(HttpMonitorChecker.NoRedirectsClient, c => c.Timeout = Timeout.InfiniteTimeSpan)
+            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
         services.AddScoped<IMonitorChecker, HttpMonitorChecker>();
 
         return services;

@@ -11,6 +11,7 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.AddPersistence();
 builder.Services.AddRepositories();
 builder.Services.AddCheckers();
+builder.Services.AddAppDataProtection();
 builder.Services.AddAppOpenTelemetry("US.CheckWorker");
 
 var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq")!;

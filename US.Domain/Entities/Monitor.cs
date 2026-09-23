@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using US.Domain.Enums;
+using US.Domain.ValueObjects.Checks;
 
 namespace US.Domain.Entities;
 
@@ -21,6 +22,9 @@ public class Monitor
 
     public bool NotifyOnRecovery { get; private set; }
 
+    /// <summary>Ustawienia specyficzne dla typu (np. metoda i auth dla HTTP). Null dla typów bez konfiguracji.</summary>
+    public CheckConfig? Config { get; private set; }
+
     public bool IsActive { get; private set; }
     
     public Guid OrganizationId { get; private set; }
@@ -39,6 +43,7 @@ public class Monitor
         string name,
         string target,
         MonitorType type,
+        CheckConfig? config = null,
         int intervalSeconds = 60,
         int timeoutMs = 5000,
         int alertThreshold = 3,
@@ -57,6 +62,9 @@ public class Monitor
         ValidateThreshold(alertThreshold, nameof(alertThreshold));
         ValidateThreshold(recoveryThreshold, nameof(recoveryThreshold));
 
+        config ??= DefaultConfigFor(type);
+        ValidateConfig(type, config);
+
         var now = DateTimeOffset.UtcNow;
         var id = Guid.NewGuid();
 
@@ -72,6 +80,7 @@ public class Monitor
             AlertThreshold = alertThreshold,
             RecoveryThreshold = recoveryThreshold,
             NotifyOnRecovery = notifyOnRecovery,
+            Config = config,
             IsActive = true,
             CreatedAt = now,
             UpdatedAt = now,
@@ -115,6 +124,13 @@ public class Monitor
 
         AlertThreshold = alertThreshold;
         RecoveryThreshold = recoveryThreshold;
+        Touch();
+    }
+
+    public void UpdateConfig(CheckConfig config)
+    {
+        ValidateConfig(Type, config);
+        Config = config;
         Touch();
     }
 
@@ -202,6 +218,26 @@ public class Monitor
         if (timeoutMs >= intervalSeconds * 1000)
             throw new ArgumentException(
                 "Timeout musi być mniejszy niż interval (w ms), inaczej checki będą się nakładać.");
+    }
+
+    private static CheckConfig? DefaultConfigFor(MonitorType type) => type switch
+    {
+        MonitorType.Http => HttpCheckConfig.Default,
+        _ => null
+    };
+
+    private static void ValidateConfig(MonitorType type, CheckConfig? config)
+    {
+        switch (type, config)
+        {
+            case (MonitorType.Http, HttpCheckConfig http):
+                http.Validate();
+                break;
+            case (MonitorType.Http, _):
+                throw new ArgumentException("Monitor HTTP wymaga konfiguracji HTTP.", nameof(config));
+            case (_, not null):
+                throw new ArgumentException($"Monitor typu {type} nie obsługuje konfiguracji {config.GetType().Name}.", nameof(config));
+        }
     }
 
     private static void ValidateThreshold(int threshold, string paramName)

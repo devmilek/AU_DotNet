@@ -1,6 +1,9 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using US.Domain.Entities;
+using US.Domain.ValueObjects.Checks;
 using Monitor = US.Domain.Entities.Monitor;
 
 namespace US.Infrastructure.Persistence.Configurations;
@@ -24,6 +27,16 @@ public sealed class MonitorConfiguration : IEntityTypeConfiguration<Monitor>
         builder.Property(m => m.Type)
             .HasConversion<string>()
             .IsRequired();
+
+        builder.Property(m => m.Config)
+            .HasColumnType("jsonb")
+            .HasConversion(
+                config => config == null ? null : JsonSerializer.Serialize(config, JsonOptions),
+                json => json == null ? null : JsonSerializer.Deserialize<CheckConfig>(json, JsonOptions))
+            .Metadata.SetValueComparer(new ValueComparer<CheckConfig?>(
+                (a, b) => JsonSerializer.Serialize(a, JsonOptions) == JsonSerializer.Serialize(b, JsonOptions),
+                c => JsonSerializer.Serialize(c, JsonOptions).GetHashCode(),
+                c => c == null ? null : JsonSerializer.Deserialize<CheckConfig>(JsonSerializer.Serialize(c, JsonOptions), JsonOptions)));
 
         builder.Property(m => m.IntervalSeconds)
             .IsRequired()
@@ -69,4 +82,11 @@ public sealed class MonitorConfiguration : IEntityTypeConfiguration<Monitor>
             .HasForeignKey(m => m.OrganizationId)
             .OnDelete(DeleteBehavior.Cascade);
     }
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        // jsonb sortuje klucze, więc "$type" nie musi być pierwszy
+        AllowOutOfOrderMetadataProperties = true
+    };
 }

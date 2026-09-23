@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using US.Domain.Enums;
+using US.Domain.ValueObjects.Checks;
 
 namespace US.Application.Monitors.Commands.CreateMonitor;
 
@@ -10,4 +12,28 @@ public sealed record CreateMonitorCommand(
     int IntervalSeconds,
     int TimeoutMs,
     int AlertThreshold,
-    int RecoveryThreshold);
+    int RecoveryThreshold,
+    HttpCheckSettings? Http = null);
+
+/// <summary>Ustawienia HTTP z requestu — sekrety jeszcze jawne, szyfruje je handler.</summary>
+public sealed record HttpCheckSettings(
+    HttpCheckMethod Method,
+    bool FollowRedirects,
+    IReadOnlyList<StatusCodeRangeSettings>? AcceptedStatusCodes,
+    HttpAuthSettings? Auth);
+
+public sealed record StatusCodeRangeSettings(int From, int To);
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
+public enum HttpAuthType
+{
+    None,
+    Basic,
+    Bearer
+}
+
+public sealed record HttpAuthSettings(
+    HttpAuthType Type,
+    string? Username,
+    string? Password,
+    string? Token);

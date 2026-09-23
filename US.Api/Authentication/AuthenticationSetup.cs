@@ -44,9 +44,7 @@ public static class AuthenticationSetup
         services.Configure<SecurityStampValidatorOptions>(o =>
             o.ValidationInterval = TimeSpan.FromMinutes(5));
 
-        services.AddDataProtection()
-            .SetApplicationName("UptimeStatus")
-            .PersistKeysToDbContext<AppDbContext>();
+        services.AddAppDataProtection();
 
         
         services.AddAuthorizationBuilder()

@@ -1,3 +1,6 @@
+using US.Application.Abstractions;
+using US.Domain.ValueObjects.Checks;
+
 namespace US.Application.Monitors.Commands.CreateMonitor;
 using Monitor = US.Domain.Entities.Monitor;
 
@@ -6,6 +9,7 @@ public sealed class CreateMonitorHandler
     public async Task<Guid> Handle(
         CreateMonitorCommand command,
         IMonitorRepository repository,
+        ISecretProtector secretProtector,
         IUnitOfWork unitOfWork,
         CancellationToken cancellationToken)
     {
@@ -14,6 +18,7 @@ public sealed class CreateMonitorHandler
             command.Name,
             command.Target,
             command.Type,
+            command.Http is { } http ? ToConfig(http, secretProtector) : null,
             command.IntervalSeconds,
             command.TimeoutMs,
             command.AlertThreshold,
@@ -24,4 +29,26 @@ public sealed class CreateMonitorHandler
 
         return monitor.Id;
     }
+
+    private static HttpCheckConfig ToConfig(HttpCheckSettings settings, ISecretProtector secretProtector) => new()
+    {
+        Method = settings.Method,
+        FollowRedirects = settings.FollowRedirects,
+        AcceptedStatusCodes = settings.AcceptedStatusCodes is { Count: > 0 } ranges
+            ? ranges.Select(r => new StatusCodeRange(r.From, r.To)).ToList()
+            : HttpCheckConfig.DefaultAcceptedStatusCodes,
+        Auth = settings.Auth switch
+        {
+            { Type: HttpAuthType.Basic } basic => new BasicHttpAuth
+            {
+                Username = basic.Username!,
+                Password = secretProtector.Protect(basic.Password!)
+            },
+            { Type: HttpAuthType.Bearer } bearer => new BearerHttpAuth
+            {
+                Token = secretProtector.Protect(bearer.Token!)
+            },
+            _ => null
+        }
+    };
 }
