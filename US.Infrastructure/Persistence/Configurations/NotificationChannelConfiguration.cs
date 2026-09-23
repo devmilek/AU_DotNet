@@ -1,10 +1,10 @@
 using System.Text.Json;
-using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using US.Domain.Entities;
 using US.Domain.ValueObjects;
+using US.Infrastructure.Persistence;
 
 namespace US.Infrastructure.Persistence.Configurations;
 
@@ -24,7 +24,7 @@ public class NotificationChannelConfiguration : IEntityTypeConfiguration<Notific
             .HasConversion(
                 config => JsonSerializer.Serialize(config, JsonOptions),
                 json => JsonSerializer.Deserialize<ChannelConfig>(json, JsonOptions)!
-            ).HasColumnType("json")
+            ).HasColumnType("jsonb")
             .Metadata.SetValueComparer(new ValueComparer<ChannelConfig>(
                 (a, b) => JsonSerializer.Serialize(a, JsonOptions) == JsonSerializer.Serialize(b, JsonOptions),
                 c => JsonSerializer.Serialize(c, JsonOptions).GetHashCode(),
@@ -39,8 +39,5 @@ public class NotificationChannelConfiguration : IEntityTypeConfiguration<Notific
             .OnDelete(DeleteBehavior.Cascade);
     }
     
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-    };
+    private static JsonSerializerOptions JsonOptions => JsonColumnOptions.Default;
 }

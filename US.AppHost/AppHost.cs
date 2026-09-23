@@ -9,8 +9,12 @@ var postgres = builder
     .AddPostgres("postgres",
         builder.AddParameter("postgres-user"),
         builder.AddParameter("postgres-pass", secret: true))
+    // TimescaleDB = Postgres 18 + rozszerzenie timescaledb (hypertabela checków, agregaty ciągłe)
+    .WithImage("timescale/timescaledb", "2.30.1-pg18")
     .WithHostPort(5435)
-    .WithDataVolume()
+    // osobny wolumen: obraz dopisuje timescaledb do shared_preload_libraries tylko przy inicjalizacji klastra,
+    // więc stary wolumen z czystego Postgresa by go nie załadował
+    .WithDataVolume("uptime-timescaledb-data")
     .WithLifetime(ContainerLifetime.Persistent);
 
 var db = postgres.AddDatabase("app");

@@ -29,7 +29,9 @@ public static class DependencyInjection
 {
     public static IHostApplicationBuilder AddPersistence(this IHostApplicationBuilder builder)
     {
-        builder.AddNpgsqlDbContext<AppDbContext>("app");
+        // UseTimescaleDb musi być po UseNpgsql — Aspire woła ten delegat po skonfigurowaniu Npgsql
+        builder.AddNpgsqlDbContext<AppDbContext>("app",
+            configureDbContextOptions: options => options.UseTimescaleDb());
 
         return builder;
     }

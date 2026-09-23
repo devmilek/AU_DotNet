@@ -83,10 +83,5 @@ public sealed class MonitorConfiguration : IEntityTypeConfiguration<Monitor>
             .OnDelete(DeleteBehavior.Cascade);
     }
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        // jsonb sortuje klucze, więc "$type" nie musi być pierwszy
-        AllowOutOfOrderMetadataProperties = true
-    };
+    private static JsonSerializerOptions JsonOptions => JsonColumnOptions.Default;
 }

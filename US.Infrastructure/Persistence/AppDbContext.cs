@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using US.Application.Checks.ReadModels;
 using US.Domain.Entities;
 using US.Infrastructure.Identity;
 using Monitor = US.Domain.Entities.Monitor;
@@ -13,6 +14,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<Monitor> Monitors => Set<Monitor>();
     public DbSet<MonitorState> MonitorStates => Set<MonitorState>();
     public DbSet<Check> MonitorChecks => Set<Check>();
+    public DbSet<MonitorCheckHourly> MonitorChecksHourly => Set<MonitorCheckHourly>();
+    public DbSet<MonitorCheckDaily> MonitorChecksDaily => Set<MonitorCheckDaily>();
     public DbSet<Incident> Incidents => Set<Incident>();
     public DbSet<IncidentNotification> IncidentNotifications => Set<IncidentNotification>();
     public DbSet<NotificationChannel> NotificationChannels => Set<NotificationChannel>();
@@ -36,8 +39,9 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     public AppDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseNpgsql(
-            "Host=localhost;Port=5435;Database=app;Username=postgres;Password=milek123");
+        optionsBuilder
+            .UseNpgsql("Host=localhost;Port=5435;Database=app;Username=postgres;Password=milek123")
+            .UseTimescaleDb();
 
         return new AppDbContext(optionsBuilder.Options);
     }

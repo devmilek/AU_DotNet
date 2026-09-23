@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using US.Api.Controllers.Monitors.Requests;
+using US.Api.Controllers.Monitors.Responses;
 using US.Application.Channels.Commands.AssignChannelToMonitor;
 using US.Application.Channels.Commands.SendTestNotification;
 using US.Application.Channels.Commands.UnassignChannelFromMonitor;
@@ -22,7 +23,7 @@ namespace US.Api.Controllers;
 public class MonitorsController(IMessageBus bus) : ControllerBase
 {
     [HttpGet("{id:guid}", Name = "GetMonitor")]
-    [ProducesResponseType<Monitor>(StatusCodes.Status200OK)]
+    [ProducesResponseType<MonitorResponse>(StatusCodes.Status200OK)]
     public async Task<IActionResult> Get(Guid orgId, Guid id)
     {
         var monitor = await bus.InvokeAsync<Monitor?>(new GetMonitorQuery(orgId, id));
@@ -30,11 +31,11 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
         {
             return NotFound();
         }
-        return Ok(monitor);
+        return Ok(MonitorResponse.From(monitor));
     }
     
     [HttpGet(Name = "GetAllMonitors")]
-    [ProducesResponseType<PagedResult<Monitor>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<PagedResult<MonitorResponse>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(Guid orgId, [FromQuery] GetMonitorsRequest request)
     {
         var types = new List<MonitorType>();
@@ -63,7 +64,11 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
             request.Search);
 
         var monitors = await bus.InvokeAsync<PagedResult<Monitor>>(query);
-        return Ok(monitors);
+        return Ok(new PagedResult<MonitorResponse>(
+            monitors.Items.Select(MonitorResponse.From).ToList(),
+            monitors.Page,
+            monitors.PageSize,
+            monitors.TotalCount));
     }
 
     [HttpPost(Name = "CreateMonitor")]
@@ -71,7 +76,7 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
     [Authorize(Policy = OrgPolicies.Admin)]
     public async Task<IActionResult> CreateMonitor(Guid orgId, CreateMonitorRequest request)
     {
-        var command = new CreateMonitorCommand(orgId, request.Name, request.Type, request.Target, request.IntervalSeconds, request.TimeoutMs, request.AlertThreshold, request.RecoveryThreshold);
+        var command = new CreateMonitorCommand(orgId, request.Name, request.Type, request.Target, request.IntervalSeconds, request.TimeoutMs, request.AlertThreshold, request.RecoveryThreshold, request.Http);
         var result = await bus.InvokeAsync<Guid>(command);
         return CreatedAtAction(nameof(Get), new { orgId, id = result }, result);
     }

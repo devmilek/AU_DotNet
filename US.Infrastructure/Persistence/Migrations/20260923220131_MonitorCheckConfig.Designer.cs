@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using US.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using US.Infrastructure.Persistence;
 namespace US.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260923220131_MonitorCheckConfig")]
+    partial class MonitorCheckConfig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -105,134 +108,37 @@ namespace US.Infrastructure.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("US.Application.Checks.ReadModels.MonitorCheckDaily", b =>
-                {
-                    b.Property<DateTimeOffset>("Bucket")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("MaxResponseTimeMs")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("MinResponseTimeMs")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("MonitorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("ResponseTimeCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("ResponseTimeSumMs")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TotalChecks")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UpChecks")
-                        .HasColumnType("bigint");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("monitor_checks_daily", (string)null);
-
-                    b
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:MaterializedOnly", false)
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:Query", "SELECT time_bucket(INTERVAL '1 day', h.\"Bucket\") AS \"Bucket\",\n       h.\"MonitorId\",\n       sum(h.\"TotalChecks\")::bigint AS \"TotalChecks\",\n       sum(h.\"UpChecks\")::bigint AS \"UpChecks\",\n       sum(h.\"ResponseTimeCount\")::bigint AS \"ResponseTimeCount\",\n       sum(h.\"ResponseTimeSumMs\")::bigint AS \"ResponseTimeSumMs\",\n       min(h.\"MinResponseTimeMs\") AS \"MinResponseTimeMs\",\n       max(h.\"MaxResponseTimeMs\") AS \"MaxResponseTimeMs\"\nFROM monitor_checks_hourly AS h\nGROUP BY 1, 2")
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:WithNoData", true)
-                        .HasAnnotation("TimescaleDb:IsContinuousAggregate", true)
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:EndOffset", "01:00:00")
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:ScheduleInterval", "01:00:00")
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:StartOffset", "3 days");
-                });
-
-            modelBuilder.Entity("US.Application.Checks.ReadModels.MonitorCheckHourly", b =>
-                {
-                    b.Property<DateTimeOffset>("Bucket")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int?>("MaxResponseTimeMs")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("MinResponseTimeMs")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("MonitorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("ResponseTimeCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("ResponseTimeSumMs")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TotalChecks")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("UpChecks")
-                        .HasColumnType("bigint");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("monitor_checks_hourly", (string)null);
-
-                    b
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:MaterializedOnly", false)
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:Query", "SELECT time_bucket(INTERVAL '1 hour', c.checked_at) AS \"Bucket\",\n       c.monitor_id AS \"MonitorId\",\n       count(*) AS \"TotalChecks\",\n       count(*) FILTER (WHERE c.status = 'UP') AS \"UpChecks\",\n       count(c.response_time_ms) AS \"ResponseTimeCount\",\n       sum(c.response_time_ms) AS \"ResponseTimeSumMs\",\n       min(c.response_time_ms) AS \"MinResponseTimeMs\",\n       max(c.response_time_ms) AS \"MaxResponseTimeMs\"\nFROM checks AS c\nGROUP BY 1, 2")
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:WithNoData", true)
-                        .HasAnnotation("TimescaleDb:IsContinuousAggregate", true)
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:EndOffset", "01:00:00")
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:ScheduleInterval", "00:30:00")
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:StartOffset", "3 days")
-                        .HasAnnotation("TimescaleDb:RetentionPolicy:DropAfter", "2 years");
-                });
-
             modelBuilder.Entity("US.Domain.Entities.Check", b =>
                 {
                     b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CheckedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("checked_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ErrorMessage")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)")
-                        .HasColumnName("error_message");
+                        .HasColumnType("character varying(2000)");
 
                     b.Property<Guid>("MonitorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("monitor_id");
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("ResponseTimeMs")
-                        .HasColumnType("integer")
-                        .HasColumnName("response_time_ms");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
+                        .HasColumnType("text");
 
                     b.Property<int?>("StatusCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("status_code");
+                        .HasColumnType("integer");
 
-                    b.HasKey("Id", "CheckedAt");
+                    b.HasKey("Id");
 
                     b.HasIndex("MonitorId", "CheckedAt");
 
                     b.ToTable("checks", (string)null);
-
-                    b
-                        .HasAnnotation("TimescaleDb:Columnstore:Enabled", true)
-                        .HasAnnotation("TimescaleDb:Columnstore:OrderBy", "checked_at DESC")
-                        .HasAnnotation("TimescaleDb:Columnstore:SegmentBy", "monitor_id")
-                        .HasAnnotation("TimescaleDb:ColumnstorePolicy:After", "1 day")
-                        .HasAnnotation("TimescaleDb:Hypertable:ChunkInterval", "1 day")
-                        .HasAnnotation("TimescaleDb:Hypertable:PartitionColumn", "checked_at")
-                        .HasAnnotation("TimescaleDb:IsHypertable", true)
-                        .HasAnnotation("TimescaleDb:RetentionPolicy:DropAfter", "30 days");
                 });
 
             modelBuilder.Entity("US.Domain.Entities.Incident", b =>
@@ -490,7 +396,7 @@ namespace US.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Config")
                         .IsRequired()
-                        .HasColumnType("jsonb");
+                        .HasColumnType("json");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
