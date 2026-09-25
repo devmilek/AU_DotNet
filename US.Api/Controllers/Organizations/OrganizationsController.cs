@@ -3,9 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using US.Api.Controllers.Organizations.Requests;
 using US.Api.RateLimiting;
+using US.Application.Organizations.Commands.ChangeMemberRole;
 using US.Application.Organizations.Commands.CreateOrganization;
+using US.Application.Organizations.Commands.DeleteOrganization;
 using US.Application.Organizations.Commands.InviteMemberCommand;
+using US.Application.Organizations.Commands.RemoveMember;
+using US.Application.Organizations.Commands.RevokeInvitation;
+using US.Application.Organizations.Commands.UpdateOrganization;
+using US.Application.Organizations.Queries.GetInvitations;
+using US.Application.Organizations.Queries.GetMembers;
 using US.Application.Organizations.Queries.GetMyOrganizations;
+using US.Application.Organizations.Queries.GetOrganization;
 using Wolverine;
 
 namespace US.Api.Controllers;
@@ -39,5 +47,75 @@ public class OrganizationsController(IMessageBus bus) : ControllerBase
     {
         var command = new InviteMemberCommand(orgId, request.Email, request.Role);
         return Ok(await bus.InvokeAsync<InvitationResponse>(command, ct));
+    }
+
+    [HttpGet("{orgId:guid}", Name = "GetOrganization")]
+    [ProducesResponseType<OrganizationDetails>(StatusCodes.Status200OK)]
+    [Authorize(Policy = OrgPolicies.Member)]
+    public async Task<IActionResult> Get(Guid orgId, CancellationToken ct)
+    {
+        return Ok(await bus.InvokeAsync<OrganizationDetails>(new GetOrganizationQuery(orgId), ct));
+    }
+
+    [HttpPut("{orgId:guid}", Name = "UpdateOrganization")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> Update(Guid orgId, UpdateOrganizationRequest request, CancellationToken ct)
+    {
+        await bus.InvokeAsync(new UpdateOrganizationCommand(orgId, request.Name), ct);
+        return NoContent();
+    }
+
+    [HttpDelete("{orgId:guid}", Name = "DeleteOrganization")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Owner)]
+    public async Task<IActionResult> Delete(Guid orgId, [FromBody] DeleteOrganizationRequest request, CancellationToken ct)
+    {
+        await bus.InvokeAsync(new DeleteOrganizationCommand(orgId, request.ConfirmationName), ct);
+        return NoContent();
+    }
+
+    [HttpGet("{orgId:guid}/members", Name = "GetMembers")]
+    [ProducesResponseType<IReadOnlyList<MemberRow>>(StatusCodes.Status200OK)]
+    [Authorize(Policy = OrgPolicies.Member)]
+    public async Task<IActionResult> GetMembers(Guid orgId, CancellationToken ct)
+    {
+        return Ok(await bus.InvokeAsync<IReadOnlyList<MemberRow>>(new GetMembersQuery(orgId), ct));
+    }
+
+    [HttpPut("{orgId:guid}/members/{userId:guid}/role", Name = "ChangeMemberRole")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> ChangeMemberRole(
+        Guid orgId, Guid userId, ChangeMemberRoleRequest request, CancellationToken ct)
+    {
+        await bus.InvokeAsync(new ChangeMemberRoleCommand(orgId, userId, request.Role), ct);
+        return NoContent();
+    }
+
+    [HttpDelete("{orgId:guid}/members/{userId:guid}", Name = "RemoveMember")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Member)]
+    public async Task<IActionResult> RemoveMember(Guid orgId, Guid userId, CancellationToken ct)
+    {
+        await bus.InvokeAsync(new RemoveMemberCommand(orgId, userId), ct);
+        return NoContent();
+    }
+
+    [HttpGet("{orgId:guid}/invitations", Name = "GetInvitations")]
+    [ProducesResponseType<IReadOnlyList<PendingInvitationRow>>(StatusCodes.Status200OK)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> GetInvitations(Guid orgId, CancellationToken ct)
+    {
+        return Ok(await bus.InvokeAsync<IReadOnlyList<PendingInvitationRow>>(new GetInvitationsQuery(orgId), ct));
+    }
+
+    [HttpDelete("{orgId:guid}/invitations/{invitationId:guid}", Name = "RevokeInvitation")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> RevokeInvitation(Guid orgId, Guid invitationId, CancellationToken ct)
+    {
+        await bus.InvokeAsync(new RevokeInvitationCommand(orgId, invitationId), ct);
+        return NoContent();
     }
 }

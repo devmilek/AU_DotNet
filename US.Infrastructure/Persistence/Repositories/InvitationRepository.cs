@@ -29,6 +29,12 @@ public sealed class InvitationRepository(AppDbContext context) : IInvitationRepo
             .FirstOrDefaultAsync(i => i.TokenHash == tokenHash);
     }
 
+    public async Task<Invitation?> GetAsync(Guid organizationId, Guid invitationId, CancellationToken ct = default)
+    {
+        return await context.Invitations
+            .FirstOrDefaultAsync(i => i.Id == invitationId && i.OrganizationId == organizationId, ct);
+    }
+
     public async Task<IReadOnlyList<Invitation>> GetPendingAsync(Guid organizationId)
     {
         var now = DateTimeOffset.UtcNow;

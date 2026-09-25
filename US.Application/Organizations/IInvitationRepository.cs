@@ -8,4 +8,5 @@ public interface IInvitationRepository
     Task<Invitation?> GetPendingByEmailAsync(Guid organizationId, string normalizedEmail);
     Task<Invitation?> GetByTokenHashAsync(string tokenHash);
     Task<IReadOnlyList<Invitation>> GetPendingAsync(Guid organizationId);
+    Task<Invitation?> GetAsync(Guid organizationId, Guid invitationId, CancellationToken ct = default);
 }

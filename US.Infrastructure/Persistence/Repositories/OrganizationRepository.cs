@@ -17,6 +17,33 @@ public sealed class OrganizationRepository(AppDbContext context) : IOrganization
             .FirstOrDefaultAsync(o => o.Id == organizationId);
     }
 
+    public async Task<Organization?> GetWithMembersAsync(Guid organizationId, CancellationToken ct = default)
+    {
+        return await context.Organizations
+            .Include(o => o.Members)
+            .FirstOrDefaultAsync(o => o.Id == organizationId, ct);
+    }
+
+    public async Task DeleteAsync(Organization organization, CancellationToken ct = default)
+    {
+        var strategy = context.Database.CreateExecutionStrategy();
+
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await context.Database.BeginTransactionAsync(ct);
+
+            await context.MaintenanceOccurrences
+                .Where(o => context.MaintenanceWindows.Any(w =>
+                    w.Id == o.MaintenanceWindowId && w.OrganizationId == organization.Id))
+                .ExecuteDeleteAsync(ct);
+
+            context.Organizations.Remove(organization);
+            await context.SaveChangesAsync(ct);
+
+            await transaction.CommitAsync(ct);
+        });
+    }
+
     public async Task<bool> SlugExistsAsync(string slug)
     {
         return await context.Organizations.Where(x => x.Slug == slug).AsNoTracking().AnyAsync();

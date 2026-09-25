@@ -40,4 +40,46 @@ public class Organization
         _members.Add(member);
         return member;
     }
+
+    public const int MaxNameLength = 100;
+
+    public void Rename(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Organization name is required.", nameof(name));
+
+        if (name.Trim().Length > MaxNameLength)
+            throw new ArgumentException($"Organization name can be at most {MaxNameLength} characters.", nameof(name));
+
+        Name = name.Trim();
+    }
+
+    public OrganizationMember? FindMember(Guid userId) =>
+        _members.FirstOrDefault(m => m.UserId == userId);
+
+    public bool IsLastOwner(Guid userId) =>
+        FindMember(userId)?.Role == OrganizationRole.Owner
+        && _members.Count(m => m.Role == OrganizationRole.Owner) == 1;
+
+    public void ChangeMemberRole(Guid userId, OrganizationRole role)
+    {
+        var member = FindMember(userId)
+                     ?? throw new InvalidOperationException("User is not a member of this organization.");
+
+        if (role != OrganizationRole.Owner && IsLastOwner(userId))
+            throw new InvalidOperationException("The organization must keep at least one owner.");
+
+        member.ChangeRole(role);
+    }
+
+    public void RemoveMember(Guid userId)
+    {
+        var member = FindMember(userId)
+                     ?? throw new InvalidOperationException("User is not a member of this organization.");
+
+        if (IsLastOwner(userId))
+            throw new InvalidOperationException("The organization must keep at least one owner.");
+
+        _members.Remove(member);
+    }
 }

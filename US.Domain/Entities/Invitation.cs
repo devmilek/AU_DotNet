@@ -39,7 +39,7 @@ public class Invitation
         };
     }
 
-    private bool IsPending(DateTimeOffset now) => AcceptedAt is null && RevokedAt is null && ExpiresAt > now;
+    public bool IsPending(DateTimeOffset now) => AcceptedAt is null && RevokedAt is null && ExpiresAt > now;
 
     public void Revoke(DateTimeOffset now)
     {
