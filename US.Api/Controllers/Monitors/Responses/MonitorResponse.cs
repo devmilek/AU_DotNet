@@ -1,3 +1,5 @@
+using US.Application.Monitors.Queries.GetMonitorStatus;
+using US.Application.Monitors.Queries.GetMonitorStatuses;
 using US.Application.Checks.Statistics;
 using US.Application.Monitors.Commands.CreateMonitor;
 using US.Application.Monitors.Queries.GetAllMonitors;
@@ -88,3 +90,9 @@ public sealed record HttpAuthResponse(
     string? Username,
     bool HasPassword,
     bool HasToken);
+
+public sealed record MonitorStatusSummaryResponse(Guid Id, string Name, MonitorStatus Status)
+{
+    public static MonitorStatusSummaryResponse From(MonitorStatusSummary summary) =>
+        new(summary.Id, summary.Name, summary.Status);
+}

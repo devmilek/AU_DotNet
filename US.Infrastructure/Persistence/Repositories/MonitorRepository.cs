@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using US.Application.Common;
 using US.Application.Monitors;
 using US.Application.Monitors.Queries.GetAllMonitors;
+using US.Application.Monitors.Queries.GetMonitorStatuses;
 using US.Domain.Enums;
 using Monitor = US.Domain.Entities.Monitor;
 
@@ -26,6 +27,23 @@ public sealed class MonitorRepository(AppDbContext db) : IMonitorRepository
             .FirstOrDefaultAsync(
                 x => x.Id == monitorId && x.OrganizationId == organizationId,
                 ct);
+    }
+
+    public async Task<IReadOnlyList<MonitorStatusRow>> ListStatusRowsAsync(
+        Guid organizationId,
+        CancellationToken ct = default)
+    {
+        return await db.Monitors
+            .AsNoTracking()
+            .Where(x => x.OrganizationId == organizationId)
+            .OrderBy(x => x.Name)
+            .Select(x => new MonitorStatusRow(
+                x.Id,
+                x.Name,
+                x.IsActive,
+                db.Incidents.Any(i => i.MonitorId == x.Id && i.Status != IncidentStatus.Resolved),
+                db.MonitorChecks.Any(c => c.MonitorId == x.Id)))
+            .ToListAsync(ct);
     }
 
     public async Task<PagedResult<Monitor>> GetPagedAsync(

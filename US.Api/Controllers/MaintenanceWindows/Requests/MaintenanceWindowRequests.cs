@@ -18,3 +18,5 @@ public sealed record RenameMaintenanceWindowRequest(
 public sealed record UpdateMaintenanceWindowPolicyRequest(bool SuppressNotifications, bool ExcludeFromSla);
 
 public sealed record SetMaintenanceWindowMonitorsRequest(IReadOnlyList<Guid> MonitorIds);
+
+public sealed record UpdateOccurrenceContentRequest(string Name, string? Description);

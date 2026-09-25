@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace US.Domain.Entities;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum MaintenanceOccurrenceStatus
 {
     Scheduled,
@@ -81,6 +84,15 @@ public class MaintenanceOccurrence
         Description = MaintenanceWindow.NormalizeDescription(description);
         LockContent(now);
         Touch(now);
+    }
+
+    internal void FollowDefinition(string name, string? description, DateTimeOffset now)
+    {
+        if (HasStarted(now))
+            throw new InvalidOperationException("Wystąpienie, które się rozpoczęło, zachowuje swoją treść.");
+
+        ContentLockedAt = null;
+        ApplyContent(name, description, now);
     }
 
     internal void ApplyContent(string name, string? description, DateTimeOffset now)

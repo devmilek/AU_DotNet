@@ -6,11 +6,15 @@ using US.Application.MaintenanceWindows;
 using US.Application.MaintenanceWindows.Commands.CreateMaintenanceWindow;
 using US.Application.MaintenanceWindows.Commands.DeleteMaintenanceWindow;
 using US.Application.MaintenanceWindows.Commands.RenameMaintenanceWindow;
+using US.Application.MaintenanceWindows.Commands.ResetOccurrenceContent;
 using US.Application.MaintenanceWindows.Commands.SetMaintenanceWindowMonitors;
 using US.Application.MaintenanceWindows.Commands.UpdateMaintenanceWindowPolicy;
 using US.Application.MaintenanceWindows.Commands.UpdateMaintenanceWindowSchedule;
+using US.Application.MaintenanceWindows.Commands.UpdateOccurrenceContent;
 using US.Application.MaintenanceWindows.Queries.GetMaintenanceOccurrences;
+using US.Application.MaintenanceWindows.Queries.GetMaintenanceWindow;
 using US.Application.MaintenanceWindows.Queries.GetMaintenanceWindows;
+using US.Application.MaintenanceWindows.Queries.GetWindowOccurrences;
 using Wolverine;
 
 namespace US.Api.Controllers;
@@ -44,6 +48,57 @@ public class MaintenanceWindowsController(IMessageBus bus) : ControllerBase
         return Ok(rows.Select(MaintenanceOccurrenceResponse.From).ToList());
     }
 
+    [HttpGet("{id:guid}", Name = "GetMaintenanceWindow")]
+    [ProducesResponseType<MaintenanceWindowResponse>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Get(Guid orgId, Guid id, CancellationToken cancellationToken)
+    {
+        var details = await bus.InvokeAsync<MaintenanceWindowDetails>(
+            new GetMaintenanceWindowQuery(orgId, id), cancellationToken);
+        return Ok(MaintenanceWindowResponse.From(details));
+    }
+
+    [HttpGet("{id:guid}/occurrences", Name = "GetWindowOccurrences")]
+    [ProducesResponseType<IReadOnlyList<WindowOccurrenceResponse>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetWindowOccurrences(
+        Guid orgId,
+        Guid id,
+        [FromQuery] DateTimeOffset from,
+        [FromQuery] DateTimeOffset to,
+        CancellationToken cancellationToken)
+    {
+        var rows = await bus.InvokeAsync<IReadOnlyList<WindowOccurrenceRow>>(
+            new GetWindowOccurrencesQuery(orgId, id, from, to), cancellationToken);
+        return Ok(rows.Select(WindowOccurrenceResponse.From).ToList());
+    }
+
+    [HttpPut("{id:guid}/occurrences/{occurrenceId:guid}/content", Name = "UpdateOccurrenceContent")]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> UpdateOccurrenceContent(
+        Guid orgId,
+        Guid id,
+        Guid occurrenceId,
+        UpdateOccurrenceContentRequest request,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateOccurrenceContentCommand(orgId, id, occurrenceId, request.Name, request.Description);
+        await bus.InvokeAsync(command, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("{id:guid}/occurrences/{occurrenceId:guid}/content", Name = "ResetOccurrenceContent")]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> ResetOccurrenceContent(
+        Guid orgId,
+        Guid id,
+        Guid occurrenceId,
+        CancellationToken cancellationToken)
+    {
+        await bus.InvokeAsync(new ResetOccurrenceContentCommand(orgId, id, occurrenceId), cancellationToken);
+        return NoContent();
+    }
+
     [HttpPost(Name = "CreateMaintenanceWindow")]
     [Authorize(Policy = OrgPolicies.Admin)]
     [ProducesResponseType<Guid>(StatusCodes.Status201Created)]
@@ -62,7 +117,7 @@ public class MaintenanceWindowsController(IMessageBus bus) : ControllerBase
             request.ExcludeFromSla);
         var id = await bus.InvokeAsync<Guid>(command, cancellationToken);
 
-        return StatusCode(StatusCodes.Status201Created, id);
+        return CreatedAtAction(nameof(Get), new { orgId, id }, id);
     }
 
     [HttpPut("{id:guid}/content", Name = "RenameMaintenanceWindow")]

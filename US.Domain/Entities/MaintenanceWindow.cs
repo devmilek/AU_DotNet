@@ -127,6 +127,25 @@ public class MaintenanceWindow
         UpdatedAt = now;
     }
 
+    public MaintenanceOccurrence? FindOccurrence(Guid occurrenceId) =>
+        _occurrences.FirstOrDefault(o => o.Id == occurrenceId);
+
+    public void OverrideOccurrenceContent(MaintenanceOccurrence occurrence, string name, string? description, DateTimeOffset now)
+    {
+        EnsureNotDeleted();
+        EnsureOwns(occurrence);
+
+        occurrence.OverrideContent(name, description, now);
+    }
+
+    public void ResetOccurrenceContent(MaintenanceOccurrence occurrence, DateTimeOffset now)
+    {
+        EnsureNotDeleted();
+        EnsureOwns(occurrence);
+
+        occurrence.FollowDefinition(Name, Description, now);
+    }
+
     public void UpdateSchedule(
         string timeZoneId,
         DateTime startsAtLocal,
@@ -316,6 +335,12 @@ public class MaintenanceWindow
 
         foreach (var id in ids.Where(id => !Covers(id)))
             _monitors.Add(new MaintenanceWindowMonitor(id, Id));
+    }
+
+    private void EnsureOwns(MaintenanceOccurrence occurrence)
+    {
+        if (occurrence.MaintenanceWindowId != Id || !_occurrences.Contains(occurrence))
+            throw new ArgumentException("Wystąpienie nie należy do tego okna serwisowego.", nameof(occurrence));
     }
 
     private void EnsureNotDeleted()

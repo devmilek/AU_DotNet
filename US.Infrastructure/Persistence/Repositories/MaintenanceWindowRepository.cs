@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using US.Application.Channels;
 using US.Application.MaintenanceWindows;
 using US.Domain.Entities;
 
@@ -24,26 +25,121 @@ public sealed class MaintenanceWindowRepository(AppDbContext db) : IMaintenanceW
         return LoadAsync(query, now, includePastOccurrences, ct);
     }
 
+    public async Task<MaintenanceWindowDetails?> GetDetailsAsync(
+        Guid organizationId,
+        Guid windowId,
+        DateTimeOffset now,
+        CancellationToken ct = default)
+    {
+        var window = await db.MaintenanceWindows
+            .AsNoTracking()
+            .FirstOrDefaultAsync(
+                w => w.Id == windowId && w.OrganizationId == organizationId && w.DeletedAt == null,
+                ct);
+
+        if (window is null) return null;
+
+        var monitors = await db.MaintenanceWindowMonitors
+            .Where(link => link.MaintenanceWindowId == windowId)
+            .Join(db.Monitors, link => link.MonitorId, monitor => monitor.Id, (_, monitor) => monitor)
+            .OrderBy(m => m.Name)
+            .Select(m => new MonitorSummary(m.Id, m.Name, m.Type, m.Target, m.IsActive))
+            .ToListAsync(ct);
+
+        var nextOccurrence = await db.MaintenanceOccurrences
+            .Where(o => o.MaintenanceWindowId == windowId
+                        && o.Status == MaintenanceOccurrenceStatus.Scheduled
+                        && o.EndsAtUtc > now)
+            .OrderBy(o => o.StartsAtUtc)
+            .Select(o => new OccurrenceSlot(o.StartsAtUtc, o.EndsAtUtc))
+            .FirstOrDefaultAsync(ct);
+
+        return new MaintenanceWindowDetails(window, monitors, nextOccurrence);
+    }
+
+    public async Task<IReadOnlyList<WindowOccurrenceRow>?> ListWindowOccurrencesAsync(
+        Guid organizationId,
+        Guid windowId,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken ct = default)
+    {
+        var window = await db.MaintenanceWindows
+            .AsNoTracking()
+            .Where(w => w.Id == windowId && w.OrganizationId == organizationId && w.DeletedAt == null)
+            .Select(w => new { w.Name, w.Description })
+            .FirstOrDefaultAsync(ct);
+
+        if (window is null) return null;
+
+        return await db.MaintenanceOccurrences
+            .AsNoTracking()
+            .Where(o => o.MaintenanceWindowId == windowId && o.StartsAtUtc < to && o.EndsAtUtc > from)
+            .OrderBy(o => o.StartsAtUtc)
+            .Select(o => new WindowOccurrenceRow(
+                o.Id,
+                o.Name,
+                o.Description,
+                o.StartsAtUtc,
+                o.EndsAtUtc,
+                o.ScheduledStartUtc,
+                o.Status,
+                o.ContentLockedAt == null,
+                o.Name != window.Name || o.Description != window.Description))
+            .ToListAsync(ct);
+    }
+
+    public async Task<MaintenanceWindow?> GetForOccurrenceAsync(
+        Guid organizationId,
+        Guid windowId,
+        Guid occurrenceId,
+        DateTimeOffset now,
+        CancellationToken ct = default)
+    {
+        return await db.MaintenanceWindows
+            .Include(w => w.Occurrences.Where(o => o.Id == occurrenceId || o.EndsAtUtc > now || o.ScheduledStartUtc >= now))
+            .Where(w => w.Id == windowId && w.OrganizationId == organizationId && w.DeletedAt == null)
+            .FirstOrDefaultAsync(ct);
+    }
+
     public async Task<IReadOnlyList<MaintenanceWindowListRow>> ListAsync(
         Guid organizationId,
         DateTimeOffset now,
         CancellationToken ct = default)
     {
-        return await db.MaintenanceWindows
+        var windows = await db.MaintenanceWindows
             .AsNoTracking()
             .Where(w => w.OrganizationId == organizationId && w.DeletedAt == null)
             .OrderBy(w => w.Name)
-            .Select(w => new MaintenanceWindowListRow(
-                w,
-                db.MaintenanceWindowMonitors.Count(m => m.MaintenanceWindowId == w.Id),
-                db.MaintenanceOccurrences
+            .Select(w => new
+            {
+                Window = w,
+                NextOccurrence = db.MaintenanceOccurrences
                     .Where(o => o.MaintenanceWindowId == w.Id
                                 && o.Status == MaintenanceOccurrenceStatus.Scheduled
                                 && o.EndsAtUtc > now)
                     .OrderBy(o => o.StartsAtUtc)
                     .Select(o => new OccurrenceSlot(o.StartsAtUtc, o.EndsAtUtc))
-                    .FirstOrDefault()))
+                    .FirstOrDefault()
+            })
             .ToListAsync(ct);
+
+        var windowIds = windows.Select(w => w.Window.Id).ToList();
+
+        var monitorsByWindow = (await db.MaintenanceWindowMonitors
+                .Where(link => windowIds.Contains(link.MaintenanceWindowId))
+                .Join(db.Monitors, link => link.MonitorId, monitor => monitor.Id,
+                    (link, monitor) => new { link.MaintenanceWindowId, monitor.Id, monitor.Name })
+                .OrderBy(x => x.Name)
+                .ToListAsync(ct))
+            .ToLookup(x => x.MaintenanceWindowId, x => new WindowMonitorName(x.Id, x.Name));
+
+        return windows
+            .Select(w => new MaintenanceWindowListRow(
+                w.Window,
+                monitorsByWindow[w.Window.Id].ToList(),
+                w.NextOccurrence))
+            .ToList();
     }
 
     public async Task<IReadOnlyList<MaintenanceOccurrenceRow>> ListOccurrencesAsync(

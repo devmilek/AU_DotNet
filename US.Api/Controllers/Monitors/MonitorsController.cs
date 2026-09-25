@@ -13,6 +13,7 @@ using US.Application.Monitors.Commands.PauseMonitor;
 using US.Application.Monitors.Commands.ResumeMonitor;
 using US.Application.Monitors.Queries.GetAllMonitors;
 using US.Application.Monitors.Queries.GetMonitor;
+using US.Application.Monitors.Queries.GetMonitorStatuses;
 using US.Domain.Enums;
 using Wolverine;
 using Monitor = US.Domain.Entities.Monitor;
@@ -38,6 +39,15 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
         return Ok(MonitorResponse.From(monitor));
     }
     
+    [HttpGet("statuses", Name = "GetMonitorStatuses")]
+    [ProducesResponseType<IReadOnlyList<MonitorStatusSummaryResponse>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetStatuses(Guid orgId, CancellationToken cancellationToken)
+    {
+        var summaries = await bus.InvokeAsync<IReadOnlyList<MonitorStatusSummary>>(
+            new GetMonitorStatusesQuery(orgId), cancellationToken);
+        return Ok(summaries.Select(MonitorStatusSummaryResponse.From).ToList());
+    }
+
     [HttpGet(Name = "GetAllMonitors")]
     [ProducesResponseType<PagedResult<MonitorListItemResponse>>(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(Guid orgId, [FromQuery] GetMonitorsRequest request)

@@ -13,6 +13,26 @@ public interface IMaintenanceWindowRepository
         bool includePastOccurrences = false,
         CancellationToken ct = default);
 
+    Task<MaintenanceWindowDetails?> GetDetailsAsync(
+        Guid organizationId,
+        Guid windowId,
+        DateTimeOffset now,
+        CancellationToken ct = default);
+
+    Task<IReadOnlyList<WindowOccurrenceRow>?> ListWindowOccurrencesAsync(
+        Guid organizationId,
+        Guid windowId,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken ct = default);
+
+    Task<MaintenanceWindow?> GetForOccurrenceAsync(
+        Guid organizationId,
+        Guid windowId,
+        Guid occurrenceId,
+        DateTimeOffset now,
+        CancellationToken ct = default);
+
     Task<IReadOnlyList<MaintenanceWindowListRow>> ListAsync(
         Guid organizationId,
         DateTimeOffset now,
