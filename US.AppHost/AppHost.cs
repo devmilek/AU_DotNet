@@ -44,8 +44,16 @@ var api = builder.AddProject<Projects.US_Api>("api")
     .WithMailpit(mailpit)
     .WithEnvironment("Auth__FrontendUrl", frontendUrl);
 
+var apiHttps = api.GetEndpoint("https");
+api.WithUrl($"{apiHttps}/scalar", "Scalar")
+    .WithUrl($"{apiHttps}/hangfire", "Hangfire");
+
 builder.AddProject<Projects.US_CheckScheduler>("check-scheduler")
     .WithBackingServices(db, rabbit);
+
+builder.AddProject<Projects.US_Jobs>("jobs")
+    .WithReference(db)
+    .WaitFor(db);
 
 builder.AddProject<Projects.US_CheckWorker>("check-worker")
     .WithBackingServices(db, rabbit);

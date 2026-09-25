@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Hangfire;
 using JasperFx.CodeGeneration.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -52,17 +53,14 @@ builder.Host.UseWolverine(opts =>
 
 builder.Logging.AddAppOpenTelemetry();
 
-// każdy błąd (4xx/5xx) jest zwracany jako ProblemDetails — opisujemy to w OpenAPI jako odpowiedź "default"
 builder.Services.AddControllers(options =>
         options.Filters.Add(new ProducesDefaultResponseTypeAttribute(typeof(ProblemDetails))))
-    // domyślne opcje web czytają liczby także ze stringów, przez co OpenAPI opisuje je jako "number | string";
-    // ścisła obsługa daje precyzyjny kontrakt (i odrzuca "5" zamiast 5 w requestach)
     .AddJsonOptions(options => options.JsonSerializerOptions.NumberHandling = JsonNumberHandling.Strict);
-// generator OpenAPI korzysta z opcji Http.Json, nie MVC — ustawiamy to samo w obu miejscach
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.NumberHandling = JsonNumberHandling.Strict);
 builder.Services.AddOpenApi();
 builder.AddPersistence();
+builder.AddAppHangfire();
 builder.Services.AddRepositories();
 builder.Services.AddNotification(builder.Configuration);
 
@@ -97,6 +95,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi().AllowAnonymous();
     app.MapScalarApiReference().AllowAnonymous();
+    app.MapHangfireDashboard("/hangfire", new DashboardOptions { Authorization = [] }).AllowAnonymous();
 }
 
 app.Run();

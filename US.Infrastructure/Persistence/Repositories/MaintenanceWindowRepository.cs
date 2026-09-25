@@ -11,7 +11,7 @@ public sealed class MaintenanceWindowRepository(AppDbContext db) : IMaintenanceW
         db.MaintenanceWindows.Add(window);
     }
 
-    public async Task<MaintenanceWindow?> GetAsync(
+    public Task<MaintenanceWindow?> GetAsync(
         Guid organizationId,
         Guid windowId,
         DateTimeOffset now,
@@ -19,14 +19,41 @@ public sealed class MaintenanceWindowRepository(AppDbContext db) : IMaintenanceW
         CancellationToken ct = default)
     {
         var query = db.MaintenanceWindows
-            .Include(w => w.Monitors)
             .Where(w => w.Id == windowId && w.OrganizationId == organizationId && w.DeletedAt == null);
+
+        return LoadAsync(query, now, includePastOccurrences, ct);
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetRecurringIdsAsync(CancellationToken ct = default)
+    {
+        return await db.MaintenanceWindows
+            .Where(w => w.DeletedAt == null && w.RecurrenceRule != null)
+            .OrderBy(w => w.Id)
+            .Select(w => w.Id)
+            .ToListAsync(ct);
+    }
+
+    public Task<MaintenanceWindow?> GetForSchedulingAsync(Guid windowId, DateTimeOffset now, CancellationToken ct = default)
+    {
+        var query = db.MaintenanceWindows
+            .Where(w => w.Id == windowId && w.DeletedAt == null);
+
+        return LoadAsync(query, now, includePastOccurrences: false, ct);
+    }
+
+    private static Task<MaintenanceWindow?> LoadAsync(
+        IQueryable<MaintenanceWindow> query,
+        DateTimeOffset now,
+        bool includePastOccurrences,
+        CancellationToken ct)
+    {
+        query = query.Include(w => w.Monitors);
 
         query = includePastOccurrences
             ? query.Include(w => w.Occurrences)
             : query.Include(w => w.Occurrences.Where(o => o.EndsAtUtc > now || o.ScheduledStartUtc >= now));
 
-        return await query
+        return query
             .AsSplitQuery()
             .FirstOrDefaultAsync(ct);
     }

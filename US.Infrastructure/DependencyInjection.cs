@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -102,6 +104,21 @@ public static class DependencyInjection
         return services;
     }
     
+    public static IHostApplicationBuilder AddAppHangfire(this IHostApplicationBuilder builder)
+    {
+        var connectionString = builder.Configuration.GetConnectionString("app")!;
+
+        builder.Services.AddHangfire(config => config
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UsePostgreSqlStorage(
+                options => options.UseNpgsqlConnection(connectionString),
+                new PostgreSqlStorageOptions { SchemaName = "hangfire" }));
+
+        return builder;
+    }
+
     public static IServiceCollection AddCheckers(this IServiceCollection services)
     {
         // timeout pilnuje checker (TimeoutMs monitora), więc HttpClient.Timeout nie może go uprzedzić

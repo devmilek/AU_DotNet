@@ -15,6 +15,7 @@
       <ProjectReference Include="..\US.CheckScheduler\US.CheckScheduler.csproj" />
       <ProjectReference Include="..\US.CheckWorker\US.CheckWorker.csproj" />
       <ProjectReference Include="..\US.NotificationWorker\US.NotificationWorker.csproj" />
+      <ProjectReference Include="..\US.Jobs\US.Jobs.csproj" />
     </ItemGroup>
 
     <ItemGroup>

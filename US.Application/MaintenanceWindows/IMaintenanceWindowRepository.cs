@@ -13,5 +13,9 @@ public interface IMaintenanceWindowRepository
         bool includePastOccurrences = false,
         CancellationToken ct = default);
 
+    Task<IReadOnlyList<Guid>> GetRecurringIdsAsync(CancellationToken ct = default);
+
+    Task<MaintenanceWindow?> GetForSchedulingAsync(Guid windowId, DateTimeOffset now, CancellationToken ct = default);
+
     void RemoveOccurrences(IEnumerable<MaintenanceOccurrence> occurrences);
 }

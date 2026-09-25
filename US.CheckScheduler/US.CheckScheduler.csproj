@@ -10,7 +10,7 @@
     <ItemGroup>
         <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.5.4" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.12" />
-        <PackageReference Include="WolverineFx.RabbitMQ" Version="6.39.1" />
+        <PackageReference Include="WolverineFx.RabbitMQ" Version="6.40.0" />
     </ItemGroup>
 
     <ItemGroup>
