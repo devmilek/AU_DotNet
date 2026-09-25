@@ -170,6 +170,17 @@ public class MaintenanceOccurrence
         Touch(now);
     }
 
+    public void Restore(DateTimeOffset now)
+    {
+        if (!IsCancelled) return;
+
+        if (HasStarted(now))
+            throw new InvalidOperationException("Nie można przywrócić wystąpienia, którego termin już minął.");
+
+        Status = MaintenanceOccurrenceStatus.Scheduled;
+        Touch(now);
+    }
+
     private void EnsureNotCancelled()
     {
         if (IsCancelled)

@@ -146,6 +146,22 @@ public class MaintenanceWindow
         occurrence.FollowDefinition(Name, Description, now);
     }
 
+    public void CancelOccurrence(MaintenanceOccurrence occurrence, DateTimeOffset now)
+    {
+        EnsureNotDeleted();
+        EnsureOwns(occurrence);
+
+        occurrence.Cancel(now);
+    }
+
+    public void RestoreOccurrence(MaintenanceOccurrence occurrence, DateTimeOffset now)
+    {
+        EnsureNotDeleted();
+        EnsureOwns(occurrence);
+
+        occurrence.Restore(now);
+    }
+
     public void UpdateSchedule(
         string timeZoneId,
         DateTime startsAtLocal,

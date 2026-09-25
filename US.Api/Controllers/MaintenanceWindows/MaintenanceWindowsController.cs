@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using US.Api.Controllers.MaintenanceWindows.Requests;
 using US.Api.Controllers.MaintenanceWindows.Responses;
 using US.Application.MaintenanceWindows;
+using US.Application.MaintenanceWindows.Commands.CancelOccurrence;
 using US.Application.MaintenanceWindows.Commands.CreateMaintenanceWindow;
 using US.Application.MaintenanceWindows.Commands.DeleteMaintenanceWindow;
 using US.Application.MaintenanceWindows.Commands.RenameMaintenanceWindow;
 using US.Application.MaintenanceWindows.Commands.ResetOccurrenceContent;
+using US.Application.MaintenanceWindows.Commands.RestoreOccurrence;
 using US.Application.MaintenanceWindows.Commands.SetMaintenanceWindowMonitors;
 using US.Application.MaintenanceWindows.Commands.UpdateMaintenanceWindowPolicy;
 using US.Application.MaintenanceWindows.Commands.UpdateMaintenanceWindowSchedule;
@@ -96,6 +98,32 @@ public class MaintenanceWindowsController(IMessageBus bus) : ControllerBase
         CancellationToken cancellationToken)
     {
         await bus.InvokeAsync(new ResetOccurrenceContentCommand(orgId, id, occurrenceId), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/occurrences/{occurrenceId:guid}/cancel", Name = "CancelOccurrence")]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> CancelOccurrence(
+        Guid orgId,
+        Guid id,
+        Guid occurrenceId,
+        CancellationToken cancellationToken)
+    {
+        await bus.InvokeAsync(new CancelOccurrenceCommand(orgId, id, occurrenceId), cancellationToken);
+        return NoContent();
+    }
+
+    [HttpPost("{id:guid}/occurrences/{occurrenceId:guid}/restore", Name = "RestoreOccurrence")]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> RestoreOccurrence(
+        Guid orgId,
+        Guid id,
+        Guid occurrenceId,
+        CancellationToken cancellationToken)
+    {
+        await bus.InvokeAsync(new RestoreOccurrenceCommand(orgId, id, occurrenceId), cancellationToken);
         return NoContent();
     }
 
