@@ -22,7 +22,6 @@ public class Monitor
 
     public bool NotifyOnRecovery { get; private set; }
 
-    /// <summary>Ustawienia specyficzne dla typu (np. metoda i auth dla HTTP). Null dla typów bez konfiguracji.</summary>
     public CheckConfig? Config { get; private set; }
 
     public bool IsActive { get; private set; }
@@ -32,7 +31,6 @@ public class Monitor
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    // stan runtime jest wewnętrzny — nie wystawiamy go w API
     [JsonIgnore]
     public MonitorState State { get; private set; } = null!;
 

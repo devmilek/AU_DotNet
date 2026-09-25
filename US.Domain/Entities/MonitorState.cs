@@ -1,9 +1,5 @@
 namespace US.Domain.Entities;
 
-/// <summary>
-/// Stan runtime monitora (liczniki checków, harmonogram) — trzymany osobno od konfiguracji,
-/// bo zmienia się przy każdym checku.
-/// </summary>
 public class MonitorState
 {
     public Guid MonitorId { get; private set; }

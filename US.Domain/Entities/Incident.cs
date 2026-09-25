@@ -14,12 +14,18 @@ public class Incident
 
     public int FailedChecksCount { get; private set; }
 
+    /// <summary>
+    /// Incydent otwarty w trakcie okna serwisowego — nie wysyłamy powiadomień
+    /// (jeśli okno ma SuppressNotifications) i nie liczymy go do SLA (jeśli ExcludeFromSla).
+    /// </summary>
+    public bool StartedInMaintenance { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
 
     private Incident() { }
 
-    public static Incident Open(Guid monitorId, DateTimeOffset startedAt, int failedChecksCount)
+    public static Incident Open(Guid monitorId, DateTimeOffset startedAt, int failedChecksCount, bool startedInMaintenance = false)
     {
         if (monitorId == Guid.Empty)
             throw new ArgumentException("MonitorId nie może być pusty.", nameof(monitorId));
@@ -36,6 +42,7 @@ public class Incident
             Status = IncidentStatus.Ongoing,
             StartedAt = startedAt,
             FailedChecksCount = failedChecksCount,
+            StartedInMaintenance = startedInMaintenance,
             CreatedAt = now,
             UpdatedAt = now
         };
