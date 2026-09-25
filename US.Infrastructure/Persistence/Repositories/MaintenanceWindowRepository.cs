@@ -24,6 +24,52 @@ public sealed class MaintenanceWindowRepository(AppDbContext db) : IMaintenanceW
         return LoadAsync(query, now, includePastOccurrences, ct);
     }
 
+    public async Task<IReadOnlyList<MaintenanceWindowListRow>> ListAsync(
+        Guid organizationId,
+        DateTimeOffset now,
+        CancellationToken ct = default)
+    {
+        return await db.MaintenanceWindows
+            .AsNoTracking()
+            .Where(w => w.OrganizationId == organizationId && w.DeletedAt == null)
+            .OrderBy(w => w.Name)
+            .Select(w => new MaintenanceWindowListRow(
+                w,
+                db.MaintenanceWindowMonitors.Count(m => m.MaintenanceWindowId == w.Id),
+                db.MaintenanceOccurrences
+                    .Where(o => o.MaintenanceWindowId == w.Id
+                                && o.Status == MaintenanceOccurrenceStatus.Scheduled
+                                && o.EndsAtUtc > now)
+                    .OrderBy(o => o.StartsAtUtc)
+                    .Select(o => new OccurrenceSlot(o.StartsAtUtc, o.EndsAtUtc))
+                    .FirstOrDefault()))
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<MaintenanceOccurrenceRow>> ListOccurrencesAsync(
+        Guid organizationId,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken ct = default)
+    {
+        return await db.MaintenanceOccurrences
+            .AsNoTracking()
+            .Where(o => o.Status == MaintenanceOccurrenceStatus.Scheduled
+                        && o.StartsAtUtc < to
+                        && o.EndsAtUtc > from
+                        && db.MaintenanceWindows.Any(w => w.Id == o.MaintenanceWindowId
+                                                          && w.OrganizationId == organizationId
+                                                          && w.DeletedAt == null))
+            .OrderBy(o => o.StartsAtUtc)
+            .Select(o => new MaintenanceOccurrenceRow(
+                o.Id,
+                o.MaintenanceWindowId!.Value,
+                o.Name,
+                o.StartsAtUtc,
+                o.EndsAtUtc))
+            .ToListAsync(ct);
+    }
+
     public async Task<IReadOnlyList<Guid>> GetRecurringIdsAsync(CancellationToken ct = default)
     {
         return await db.MaintenanceWindows
