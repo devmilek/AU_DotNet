@@ -23,6 +23,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<OrganizationMember> OrganizationMembers => Set<OrganizationMember>();
     public DbSet<Invitation> Invitations => Set<Invitation>();
     public DbSet<MonitorNotificationChannel> MonitorNotificationChannels => Set<MonitorNotificationChannel>();
+    public DbSet<MaintenanceWindow> MaintenanceWindows => Set<MaintenanceWindow>();
+    public DbSet<MaintenanceWindowMonitor> MaintenanceWindowMonitors => Set<MaintenanceWindowMonitor>();
+    public DbSet<MaintenanceOccurrence> MaintenanceOccurrences => Set<MaintenanceOccurrence>();
     public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

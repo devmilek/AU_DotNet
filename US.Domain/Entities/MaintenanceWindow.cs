@@ -2,36 +2,28 @@ namespace US.Domain.Entities;
 
 public class MaintenanceWindow
 {
-    private const int MinDurationMinutes = 1;
-    private const int MaxDurationMinutes = 30 * 24 * 60;
+    public const int MaxNameLength = 200;
+    public const int MaxDescriptionLength = 2000;
+    public const int MaxRecurrenceRuleLength = 500;
+    public const int MinDurationMinutes = 1;
+    public const int MaxDurationMinutes = 30 * 24 * 60;
 
     private readonly List<MaintenanceWindowMonitor> _monitors = [];
+    private readonly List<MaintenanceOccurrence> _occurrences = [];
 
     public Guid Id { get; private set; }
     public Guid OrganizationId { get; private set; }
     public string Name { get; private set; } = null!;
     public string? Description { get; private set; }
 
-    /// <summary>
-    /// Identyfikator strefy IANA, np. "Europe/Warsaw".
-    /// </summary>
     public string TimeZoneId { get; private set; } = null!;
 
-    /// <summary>
-    /// Czas ścienny (w <see cref="TimeZoneId"/>) pierwszego wystąpienia.
-    /// </summary>
     public DateTime StartsAtLocal { get; private set; }
 
     public int DurationMinutes { get; private set; }
 
-    /// <summary>
-    /// RRULE (RFC 5545) bez prefiksu "RRULE:" i bez DTSTART. Null = okno jednorazowe.
-    /// </summary>
     public string? RecurrenceRule { get; private set; }
 
-    /// <summary>
-    /// Opcjonalny koniec serii (czas ścienny) — ostatnie wystąpienie nie może zacząć się później.
-    /// </summary>
     public DateTime? RecurrenceEndLocal { get; private set; }
 
     public bool SuppressNotifications { get; private set; }
@@ -44,6 +36,8 @@ public class MaintenanceWindow
     public DateTimeOffset? DeletedAt { get; private set; }
 
     public IReadOnlyCollection<MaintenanceWindowMonitor> Monitors => _monitors.AsReadOnly();
+
+    public IReadOnlyCollection<MaintenanceOccurrence> Occurrences => _occurrences.AsReadOnly();
 
     public bool IsRecurring => RecurrenceRule is not null;
     public bool IsDeleted => DeletedAt is not null;
@@ -60,10 +54,11 @@ public class MaintenanceWindow
         DateTime startsAtLocal,
         int durationMinutes,
         IEnumerable<Guid> monitorIds,
-        string? recurrenceRule = null,
-        DateTime? recurrenceEndLocal = null,
-        bool suppressNotifications = true,
-        bool excludeFromSla = true)
+        string? recurrenceRule,
+        DateTime? recurrenceEndLocal,
+        bool suppressNotifications,
+        bool excludeFromSla,
+        DateTimeOffset now)
     {
         if (organizationId == Guid.Empty)
             throw new ArgumentException("OrganizationId nie może być pusty.", nameof(organizationId));
@@ -72,13 +67,12 @@ public class MaintenanceWindow
             throw new ArgumentException("CreatedByUserId nie może być pusty.", nameof(createdByUserId));
 
         ValidateName(name);
+        ValidateDescription(description);
         ValidateTimeZone(timeZoneId);
         ValidateLocal(startsAtLocal, nameof(startsAtLocal));
         ValidateDuration(durationMinutes);
         var rule = NormalizeRecurrenceRule(recurrenceRule);
         ValidateRecurrenceEnd(rule, startsAtLocal, recurrenceEndLocal);
-
-        var now = DateTimeOffset.UtcNow;
 
         var window = new MaintenanceWindow
         {
@@ -100,29 +94,46 @@ public class MaintenanceWindow
 
         window.ReplaceMonitors(monitorIds);
 
+        if (window._monitors.Count == 0)
+            throw new ArgumentException("Okno serwisowe musi obejmować co najmniej jeden monitor.", nameof(monitorIds));
+
         return window;
     }
 
-    public void UpdateDetails(string name, string? description)
+    public void Rename(string name, string? description, bool includePastOccurrences, DateTimeOffset now)
     {
         EnsureNotDeleted();
         ValidateName(name);
+        ValidateDescription(description);
 
         Name = name.Trim();
         Description = NormalizeDescription(description);
-        Touch();
+
+        foreach (var occurrence in _occurrences)
+        {
+            if (occurrence.HasStarted(now))
+            {
+                occurrence.LockContent(occurrence.StartsAtUtc);
+
+                if (includePastOccurrences)
+                    occurrence.ApplyContent(Name, Description, now);
+            }
+            else if (!occurrence.IsContentLocked)
+            {
+                occurrence.ApplyContent(Name, Description, now);
+            }
+        }
+
+        UpdatedAt = now;
     }
 
-    /// <summary>
-    /// Zmienia harmonogram. Wywołujący odpowiada za przegenerowanie przyszłych
-    /// <see cref="MaintenanceOccurrence"/> (przeszłe i trwające zostają bez zmian).
-    /// </summary>
     public void UpdateSchedule(
         string timeZoneId,
         DateTime startsAtLocal,
         int durationMinutes,
         string? recurrenceRule,
-        DateTime? recurrenceEndLocal)
+        DateTime? recurrenceEndLocal,
+        DateTimeOffset now)
     {
         EnsureNotDeleted();
         ValidateTimeZone(timeZoneId);
@@ -136,74 +147,115 @@ public class MaintenanceWindow
         DurationMinutes = durationMinutes;
         RecurrenceRule = rule;
         RecurrenceEndLocal = recurrenceEndLocal;
-        Touch();
+        UpdatedAt = now;
     }
 
-    public void UpdatePolicy(bool suppressNotifications, bool excludeFromSla)
+    public void UpdatePolicy(bool suppressNotifications, bool excludeFromSla, DateTimeOffset now)
     {
         EnsureNotDeleted();
 
         SuppressNotifications = suppressNotifications;
         ExcludeFromSla = excludeFromSla;
-        Touch();
+        UpdatedAt = now;
     }
 
-    /// <summary>
-    /// Podmienia zestaw monitorów objętych oknem. Przynależność monitorów do organizacji
-    /// musi zweryfikować warstwa aplikacji.
-    /// </summary>
-    public void SetMonitors(IEnumerable<Guid> monitorIds)
+    public void SetMonitors(IEnumerable<Guid> monitorIds, DateTimeOffset now)
     {
         EnsureNotDeleted();
         ReplaceMonitors(monitorIds);
-        Touch();
+        UpdatedAt = now;
+    }
+
+    public bool AssignMonitor(Guid monitorId, DateTimeOffset now)
+    {
+        EnsureNotDeleted();
+
+        if (monitorId == Guid.Empty)
+            throw new ArgumentException("MonitorId nie może być pusty.", nameof(monitorId));
+
+        if (Covers(monitorId)) return false;
+
+        _monitors.Add(new MaintenanceWindowMonitor(monitorId, Id));
+        UpdatedAt = now;
+        return true;
+    }
+
+    public bool UnassignMonitor(Guid monitorId, DateTimeOffset now)
+    {
+        EnsureNotDeleted();
+
+        if (_monitors.RemoveAll(m => m.MonitorId == monitorId) == 0) return false;
+
+        UpdatedAt = now;
+        return true;
     }
 
     public bool Covers(Guid monitorId) => _monitors.Any(m => m.MonitorId == monitorId);
 
-    /// <summary>
-    /// Soft delete. Wywołujący powinien anulować przyszłe wystąpienia
-    /// (<see cref="MaintenanceOccurrence.Cancel"/>) i zakończyć trwające (<see cref="MaintenanceOccurrence.EndEarly"/>).
-    /// </summary>
+    public IReadOnlyList<MaintenanceOccurrence> SyncOccurrences(
+        IEnumerable<DateTime> scheduledStartsLocal,
+        DateTimeOffset now)
+    {
+        EnsureNotDeleted();
+
+        var planned = scheduledStartsLocal
+            .Select(local =>
+            {
+                ValidateScheduledStart(local);
+                return ToUtc(local);
+            })
+            .Distinct()
+            .Order()
+            .ToList();
+
+        for (var i = 1; i < planned.Count; i++)
+        {
+            if (planned[i - 1] + Duration > planned[i])
+                throw new ArgumentException(
+                    "Wystąpienia okna nakładają się — czas trwania jest dłuższy niż odstęp między nimi.",
+                    nameof(scheduledStartsLocal));
+        }
+
+        var plannedSet = planned.ToHashSet();
+
+        var removed = _occurrences
+            .Where(o => !o.HasStarted(now) && !plannedSet.Contains(o.ScheduledStartUtc))
+            .ToList();
+
+        foreach (var occurrence in removed)
+            _occurrences.Remove(occurrence);
+
+        var existing = _occurrences.ToDictionary(o => o.ScheduledStartUtc);
+
+        foreach (var start in planned)
+        {
+            if (existing.TryGetValue(start, out var occurrence))
+            {
+                occurrence.ApplyDuration(Duration, now);
+                continue;
+            }
+
+            if (start + Duration <= now) continue;
+
+            _occurrences.Add(MaintenanceOccurrence.Create(Id, start, Duration, Name, Description, now));
+        }
+
+        return removed;
+    }
+
     public void Delete(DateTimeOffset now)
     {
         if (IsDeleted) return;
+
+        _occurrences.RemoveAll(o => !o.HasStarted(now));
+
+        foreach (var occurrence in _occurrences.Where(o => o.IsActiveAt(now)))
+            occurrence.EndEarly(now);
 
         DeletedAt = now;
         UpdatedAt = now;
     }
 
-    /// <summary>
-    /// Tworzy wystąpienie dla terminu wyznaczonego z reguły (czas ścienny w strefie okna).
-    /// Rozwinięcie RRULE na listę terminów odbywa się poza domeną.
-    /// </summary>
-    public MaintenanceOccurrence CreateOccurrence(DateTime scheduledStartLocal)
-    {
-        EnsureNotDeleted();
-        ValidateLocal(scheduledStartLocal, nameof(scheduledStartLocal));
-
-        if (!IsRecurring && scheduledStartLocal != StartsAtLocal)
-            throw new ArgumentException(
-                "Okno jednorazowe ma tylko jedno wystąpienie — w StartsAtLocal.", nameof(scheduledStartLocal));
-
-        if (scheduledStartLocal < StartsAtLocal)
-            throw new ArgumentException(
-                "Wystąpienie nie może zaczynać się przed pierwszym terminem okna.", nameof(scheduledStartLocal));
-
-        if (RecurrenceEndLocal is { } end && scheduledStartLocal > end)
-            throw new ArgumentException(
-                "Wystąpienie nie może zaczynać się po końcu serii.", nameof(scheduledStartLocal));
-
-        var scheduledStartUtc = ToUtc(scheduledStartLocal);
-
-        return MaintenanceOccurrence.Create(Id, scheduledStartUtc, Duration);
-    }
-
-    /// <summary>
-    /// Zamienia czas ścienny w strefie okna na UTC zgodnie z RFC 5545:
-    /// czas nieistniejący (przejście na czas letni) liczony jest offsetem sprzed zmiany,
-    /// czas niejednoznaczny (powrót na czas zimowy) — jako pierwsze wystąpienie.
-    /// </summary>
     public DateTimeOffset ToUtc(DateTime local)
     {
         var tz = TimeZoneInfo.FindSystemTimeZoneById(TimeZoneId);
@@ -231,12 +283,31 @@ public class MaintenanceWindow
         return new DateTimeOffset(local.Ticks - offset.Ticks, TimeSpan.Zero);
     }
 
+    public static bool IsKnownTimeZone(string? timeZoneId) =>
+        !string.IsNullOrWhiteSpace(timeZoneId)
+        && TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out var tz)
+        && tz.HasIanaId;
+
+    private void ValidateScheduledStart(DateTime scheduledStartLocal)
+    {
+        ValidateLocal(scheduledStartLocal, nameof(scheduledStartLocal));
+
+        if (!IsRecurring && scheduledStartLocal != StartsAtLocal)
+            throw new ArgumentException(
+                "Okno jednorazowe ma tylko jedno wystąpienie — w StartsAtLocal.", nameof(scheduledStartLocal));
+
+        if (scheduledStartLocal < StartsAtLocal)
+            throw new ArgumentException(
+                "Wystąpienie nie może zaczynać się przed pierwszym terminem okna.", nameof(scheduledStartLocal));
+
+        if (RecurrenceEndLocal is { } end && scheduledStartLocal > end)
+            throw new ArgumentException(
+                "Wystąpienie nie może zaczynać się po końcu serii.", nameof(scheduledStartLocal));
+    }
+
     private void ReplaceMonitors(IEnumerable<Guid> monitorIds)
     {
-        var ids = monitorIds.Distinct().ToList();
-
-        if (ids.Count == 0)
-            throw new ArgumentException("Okno serwisowe musi obejmować co najmniej jeden monitor.", nameof(monitorIds));
+        var ids = monitorIds.ToHashSet();
 
         if (ids.Contains(Guid.Empty))
             throw new ArgumentException("MonitorId nie może być pusty.", nameof(monitorIds));
@@ -253,31 +324,32 @@ public class MaintenanceWindow
             throw new InvalidOperationException("Nie można modyfikować usuniętego okna serwisowego.");
     }
 
-    private void Touch() => UpdatedAt = DateTimeOffset.UtcNow;
-
-    private static string? NormalizeDescription(string? description) =>
+    internal static string? NormalizeDescription(string? description) =>
         string.IsNullOrWhiteSpace(description) ? null : description.Trim();
 
-    private static void ValidateName(string name)
+    internal static void ValidateName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Nazwa okna serwisowego nie może być pusta.", nameof(name));
 
-        if (name.Length > 200)
-            throw new ArgumentException("Nazwa okna serwisowego nie może przekraczać 200 znaków.", nameof(name));
+        if (name.Trim().Length > MaxNameLength)
+            throw new ArgumentException($"Nazwa okna serwisowego nie może przekraczać {MaxNameLength} znaków.", nameof(name));
+    }
+
+    private static void ValidateDescription(string? description)
+    {
+        if (description is not null && description.Trim().Length > MaxDescriptionLength)
+            throw new ArgumentException($"Opis nie może przekraczać {MaxDescriptionLength} znaków.", nameof(description));
     }
 
     private static void ValidateTimeZone(string timeZoneId)
     {
-        if (string.IsNullOrWhiteSpace(timeZoneId)
-            || !TimeZoneInfo.TryFindSystemTimeZoneById(timeZoneId, out var tz)
-            || !tz.HasIanaId)
+        if (!IsKnownTimeZone(timeZoneId))
             throw new ArgumentException($"Nieznana strefa czasowa IANA: '{timeZoneId}'.", nameof(timeZoneId));
     }
 
     private static void ValidateLocal(DateTime value, string paramName)
     {
-        // Utc/Local oznaczałoby, że ktoś już przeliczył czas — a tu chcemy czystego czasu ściennego
         if (value.Kind != DateTimeKind.Unspecified)
             throw new ArgumentException("Czas ścienny musi mieć DateTimeKind.Unspecified.", paramName);
     }
@@ -308,7 +380,12 @@ public class MaintenanceWindow
         if (rule.Contains("DTSTART"))
             throw new ArgumentException("RRULE nie może zawierać DTSTART — początek to StartsAtLocal.", nameof(rule));
 
-        return string.Join(';', parts);
+        rule = string.Join(';', parts);
+
+        if (rule.Length > MaxRecurrenceRuleLength)
+            throw new ArgumentException($"RRULE nie może przekraczać {MaxRecurrenceRuleLength} znaków.", nameof(rule));
+
+        return rule;
     }
 
     private static void ValidateRecurrenceEnd(string? rule, DateTime startsAtLocal, DateTime? recurrenceEndLocal)

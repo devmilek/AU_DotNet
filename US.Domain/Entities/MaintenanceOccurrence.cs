@@ -10,18 +10,16 @@ public class MaintenanceOccurrence
 {
     public Guid Id { get; private set; }
 
-    /// <summary>
-    /// Null po twardym usunięciu okna (ON DELETE SET NULL) — historia checków zostaje.
-    /// </summary>
     public Guid? MaintenanceWindowId { get; private set; }
+
+    public string Name { get; private set; } = null!;
+    public string? Description { get; private set; }
+
+    public DateTimeOffset? ContentLockedAt { get; private set; }
 
     public DateTimeOffset StartsAtUtc { get; private set; }
     public DateTimeOffset EndsAtUtc { get; private set; }
 
-    /// <summary>
-    /// Pierwotny termin wyznaczony z reguły — klucz do deduplikacji przy generowaniu
-    /// wystąpień, nie zmienia się przy przesunięciu pojedynczego wystąpienia.
-    /// </summary>
     public DateTimeOffset ScheduledStartUtc { get; private set; }
 
     public MaintenanceOccurrenceStatus Status { get; private set; }
@@ -31,21 +29,29 @@ public class MaintenanceOccurrence
 
     public bool IsCancelled => Status == MaintenanceOccurrenceStatus.Cancelled;
     public bool IsRescheduled => StartsAtUtc != ScheduledStartUtc;
+    public bool IsContentLocked => ContentLockedAt is not null;
 
     private MaintenanceOccurrence() { }
 
-    internal static MaintenanceOccurrence Create(Guid maintenanceWindowId, DateTimeOffset scheduledStartUtc, TimeSpan duration)
+    internal static MaintenanceOccurrence Create(
+        Guid maintenanceWindowId,
+        DateTimeOffset scheduledStartUtc,
+        TimeSpan duration,
+        string name,
+        string? description,
+        DateTimeOffset now)
     {
         if (duration <= TimeSpan.Zero)
             throw new ArgumentOutOfRangeException(nameof(duration), "Czas trwania musi być dodatni.");
 
         var start = scheduledStartUtc.ToUniversalTime();
-        var now = DateTimeOffset.UtcNow;
 
         return new MaintenanceOccurrence
         {
             Id = Guid.CreateVersion7(),
             MaintenanceWindowId = maintenanceWindowId,
+            Name = name,
+            Description = description,
             ScheduledStartUtc = start,
             StartsAtUtc = start,
             EndsAtUtc = start + duration,
@@ -62,9 +68,41 @@ public class MaintenanceOccurrence
 
     public bool HasEnded(DateTimeOffset now) => EndsAtUtc <= now;
 
-    /// <summary>
-    /// Przesuwa tylko to wystąpienie (wyjątek od reguły). Nie dotyczy trwających ani zakończonych.
-    /// </summary>
+    public void LockContent(DateTimeOffset lockedAt)
+    {
+        ContentLockedAt ??= lockedAt;
+    }
+
+    public void OverrideContent(string name, string? description, DateTimeOffset now)
+    {
+        MaintenanceWindow.ValidateName(name);
+
+        Name = name.Trim();
+        Description = MaintenanceWindow.NormalizeDescription(description);
+        LockContent(now);
+        Touch(now);
+    }
+
+    internal void ApplyContent(string name, string? description, DateTimeOffset now)
+    {
+        if (Name == name && Description == description) return;
+
+        Name = name;
+        Description = description;
+        Touch(now);
+    }
+
+    internal void ApplyDuration(TimeSpan duration, DateTimeOffset now)
+    {
+        if (HasStarted(now) || IsRescheduled) return;
+
+        var endsAt = StartsAtUtc + duration;
+        if (endsAt == EndsAtUtc) return;
+
+        EndsAtUtc = endsAt;
+        Touch(now);
+    }
+
     public void Reschedule(DateTimeOffset startsAtUtc, DateTimeOffset endsAtUtc, DateTimeOffset now)
     {
         EnsureNotCancelled();
@@ -83,9 +121,6 @@ public class MaintenanceOccurrence
         Touch(now);
     }
 
-    /// <summary>
-    /// Wydłuża trwające lub przyszłe wystąpienie.
-    /// </summary>
     public void Extend(DateTimeOffset endsAtUtc, DateTimeOffset now)
     {
         EnsureNotCancelled();
@@ -100,9 +135,6 @@ public class MaintenanceOccurrence
         Touch(now);
     }
 
-    /// <summary>
-    /// Kończy trwające wystąpienie teraz. Checki sprzed tej chwili zostają oznaczone jako maintenance.
-    /// </summary>
     public void EndEarly(DateTimeOffset now)
     {
         EnsureNotCancelled();
@@ -111,13 +143,10 @@ public class MaintenanceOccurrence
             throw new InvalidOperationException("Wcześniej zakończyć można tylko trwające wystąpienie.");
 
         EndsAtUtc = now.ToUniversalTime();
+        LockContent(StartsAtUtc);
         Touch(now);
     }
 
-    /// <summary>
-    /// Anuluje przyszłe wystąpienie. Trwające kończ przez <see cref="EndEarly"/>,
-    /// żeby nie przekłamać historii checków oznaczonych jako maintenance.
-    /// </summary>
     public void Cancel(DateTimeOffset now)
     {
         if (IsCancelled) return;

@@ -20,6 +20,10 @@ public sealed class IncidentConfiguration : IEntityTypeConfiguration<Incident>
         builder.Property(i => i.StartedAt).IsRequired();
         builder.Property(i => i.FailedChecksCount).IsRequired();
 
+        builder.Property(i => i.StartedInMaintenance)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(i => i.CreatedAt).IsRequired();
         builder.Property(i => i.UpdatedAt).IsRequired();
 

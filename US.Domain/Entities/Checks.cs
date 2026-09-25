@@ -14,10 +14,6 @@ public class Check
 
     public bool WasInMaintenance { get; private set; }
 
-    /// <summary>
-    /// Null, gdy check był poza oknem albo wystąpienie zostało usunięte (ON DELETE SET NULL) —
-    /// wtedy <see cref="WasInMaintenance"/> nadal mówi prawdę.
-    /// </summary>
     public Guid? MaintenanceOccurrenceId { get; private set; }
 
     private Check() { }
@@ -57,9 +53,6 @@ public class Check
         };
     }
 
-    /// <summary>
-    /// Oznacza check jako wykonany w trakcie wystąpienia okna serwisowego.
-    /// </summary>
     public void MarkInMaintenance(MaintenanceOccurrence occurrence)
     {
         if (!occurrence.IsActiveAt(CheckedAt))

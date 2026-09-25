@@ -15,6 +15,7 @@ using US.Application.Abstractions;
 using US.Application.Channels;
 using US.Application.Checks;
 using US.Application.Checks.Statistics;
+using US.Application.MaintenanceWindows;
 using US.Application.Monitors;
 using US.Application.Notifications;
 using US.Application.Organizations;
@@ -24,6 +25,7 @@ using US.Infrastructure.Notifications;
 using US.Infrastructure.Persistence;
 using US.Infrastructure.Persistence.Readers;
 using US.Infrastructure.Persistence.Repositories;
+using US.Infrastructure.Scheduling;
 using US.Infrastructure.Security;
 
 namespace US.Infrastructure;
@@ -89,6 +91,8 @@ public static class DependencyInjection
         services.AddScoped<IOrganizationMemberRepository, OrganizationMemberRepository>();
         services.AddScoped<IInvitationRepository, InvitationRepository>();
         services.AddScoped<IInvitationTokenService, InvitationTokenService>();
+        services.AddScoped<IMaintenanceWindowRepository, MaintenanceWindowRepository>();
+        services.AddSingleton<IRecurrenceExpander, IcalRecurrenceExpander>();
         
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 

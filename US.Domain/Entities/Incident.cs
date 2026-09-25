@@ -14,10 +14,6 @@ public class Incident
 
     public int FailedChecksCount { get; private set; }
 
-    /// <summary>
-    /// Incydent otwarty w trakcie okna serwisowego — nie wysyłamy powiadomień
-    /// (jeśli okno ma SuppressNotifications) i nie liczymy go do SLA (jeśli ExcludeFromSla).
-    /// </summary>
     public bool StartedInMaintenance { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }

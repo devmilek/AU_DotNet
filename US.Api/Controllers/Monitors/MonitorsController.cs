@@ -6,6 +6,8 @@ using US.Application.Channels.Commands.AssignChannelToMonitor;
 using US.Application.Channels.Commands.SendTestNotification;
 using US.Application.Channels.Commands.UnassignChannelFromMonitor;
 using US.Application.Common;
+using US.Application.MaintenanceWindows.Commands.AssignMaintenanceWindowToMonitor;
+using US.Application.MaintenanceWindows.Commands.UnassignMaintenanceWindowFromMonitor;
 using US.Application.Monitors.Commands.CreateMonitor;
 using US.Application.Monitors.Commands.PauseMonitor;
 using US.Application.Monitors.Commands.ResumeMonitor;
@@ -116,6 +118,28 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
     {
         var command = new UnassingChannelFromMonitorCommand(orgId, monitorId, channelId);
         await bus.InvokeAsync(command);
+        return NoContent();
+    }
+
+    [HttpPost("{monitorId:guid}/maintenance-windows/{windowId:guid}", Name = "AssignMaintenanceWindowToMonitor")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> AssignMaintenanceWindowToMonitor(
+        Guid orgId, Guid monitorId, Guid windowId, CancellationToken cancellationToken)
+    {
+        var command = new AssignMaintenanceWindowToMonitorCommand(orgId, monitorId, windowId);
+        await bus.InvokeAsync(command, cancellationToken);
+        return NoContent();
+    }
+
+    [HttpDelete("{monitorId:guid}/maintenance-windows/{windowId:guid}", Name = "UnassignMaintenanceWindowFromMonitor")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> UnassignMaintenanceWindowFromMonitor(
+        Guid orgId, Guid monitorId, Guid windowId, CancellationToken cancellationToken)
+    {
+        var command = new UnassignMaintenanceWindowFromMonitorCommand(orgId, monitorId, windowId);
+        await bus.InvokeAsync(command, cancellationToken);
         return NoContent();
     }
 

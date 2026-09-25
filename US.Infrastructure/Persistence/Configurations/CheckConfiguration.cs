@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Monitor = US.Domain.Entities.Monitor;
 using Check = US.Domain.Entities.Check;
+using MaintenanceOccurrence = US.Domain.Entities.MaintenanceOccurrence;
 
 namespace US.Infrastructure.Persistence.Configurations;
 
@@ -23,6 +24,8 @@ public sealed class CheckConfiguration : IEntityTypeConfiguration<Check>
         builder.Property(c => c.ResponseTimeMs).HasColumnName("response_time_ms");
         builder.Property(c => c.StatusCode).HasColumnName("status_code");
         builder.Property(c => c.ErrorMessage).HasColumnName("error_message");
+        builder.Property(c => c.WasInMaintenance).HasColumnName("was_in_maintenance");
+        builder.Property(c => c.MaintenanceOccurrenceId).HasColumnName("maintenance_occurrence_id");
 
         // hypertabela: każdy unikalny klucz musi zawierać kolumnę partycjonującą
         builder.HasKey(c => new { c.Id, c.CheckedAt });
@@ -33,10 +36,22 @@ public sealed class CheckConfiguration : IEntityTypeConfiguration<Check>
 
         builder.Property(c => c.ErrorMessage).HasMaxLength(2000);
 
+        builder.Property(c => c.WasInMaintenance)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasOne<Monitor>()
             .WithMany()
             .HasForeignKey(c => c.MonitorId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne<MaintenanceOccurrence>()
+            .WithMany()
+            .HasForeignKey(c => c.MaintenanceOccurrenceId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(c => c.MaintenanceOccurrenceId)
+            .HasFilter("maintenance_occurrence_id IS NOT NULL");
 
         builder.IsHypertable(c => c.CheckedAt, chunkInterval: TimeSpan.FromDays(1));
 
