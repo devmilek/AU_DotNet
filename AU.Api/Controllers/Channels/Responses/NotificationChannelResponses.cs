@@ -40,6 +40,21 @@ public sealed record NotificationChannelListItemResponse(
         row.MonitorCount);
 }
 
+public sealed record MonitorChannelResponse(
+    Guid Id,
+    string Name,
+    ChannelType Type,
+    bool IsActive,
+    ChannelConfigResponse Config)
+{
+    public static MonitorChannelResponse From(NotificationChannel channel) => new(
+        channel.Id,
+        channel.Name,
+        channel.Type,
+        channel.IsActive,
+        ChannelConfigResponse.From(channel.Config));
+}
+
 public sealed record ChannelMonitorResponse(Guid Id, string Name, MonitorType Type, string Target, bool IsActive);
 
 public sealed record NotificationChannelResponse(

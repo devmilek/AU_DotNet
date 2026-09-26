@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AU.Api.Controllers.Channels.Responses;
 using AU.Api.Controllers.Monitors.Requests;
 using AU.Api.Controllers.Monitors.Responses;
 using AU.Application.Channels.Commands.AssignChannelToMonitor;
 using AU.Application.Channels.Commands.SendTestNotification;
 using AU.Application.Channels.Commands.UnassignChannelFromMonitor;
+using AU.Application.Channels.Queries.GetMonitorChannels;
 using AU.Application.Common;
 using AU.Application.MaintenanceWindows.Commands.AssignMaintenanceWindowToMonitor;
 using AU.Application.MaintenanceWindows.Commands.UnassignMaintenanceWindowFromMonitor;
@@ -15,6 +17,7 @@ using AU.Application.Monitors.Commands.UpdateMonitor;
 using AU.Application.Monitors.Queries.GetAllMonitors;
 using AU.Application.Monitors.Queries.GetMonitor;
 using AU.Application.Monitors.Queries.GetMonitorStatuses;
+using AU.Domain.Entities;
 using AU.Domain.Enums;
 using Wolverine;
 using Monitor = AU.Domain.Entities.Monitor;
@@ -134,8 +137,18 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{monitorId:guid}/channels", Name = "GetMonitorChannels")]
+    [ProducesResponseType<IReadOnlyList<MonitorChannelResponse>>(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetChannels(Guid orgId, Guid monitorId, CancellationToken cancellationToken)
+    {
+        var channels = await bus.InvokeAsync<IReadOnlyList<NotificationChannel>>(
+            new GetMonitorChannelsQuery(orgId, monitorId), cancellationToken);
+        return Ok(channels.Select(MonitorChannelResponse.From).ToList());
+    }
+
     [HttpPost("{monitorId:guid}/channels/{channelId:guid}", Name = "AssignChannelToMonitor")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
     public async Task<IActionResult> AssignChannelToMonitor(Guid orgId, Guid monitorId, Guid channelId)
     {
         var command = new AssignChannelToMonitorCommand(orgId, monitorId, channelId);
@@ -145,6 +158,7 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
     
     [HttpDelete("{monitorId:guid}/channels/{channelId:guid}", Name = "UnassignChannelFromMonitor")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
     public async Task<IActionResult> UnassignChannelFromMonitor(Guid orgId, Guid monitorId, Guid channelId)
     {
         var command = new UnassingChannelFromMonitorCommand(orgId, monitorId, channelId);

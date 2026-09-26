@@ -26,6 +26,7 @@ export default async function MonitorDetailsPage({
           monitorRef={{ organizationId: organization.id, monitorId }}
           monitorsHref={`/${organizationSlug}/monitors`}
           incidentsHref={`/${organizationSlug}/incidents`}
+          notificationsHref={`/${organizationSlug}/notifications`}
         />
       </Suspense>
     </div>

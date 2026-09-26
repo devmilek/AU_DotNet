@@ -805,6 +805,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/{orgId}/monitors/{monitorId}/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMonitorChannels"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/{orgId}/monitors/{monitorId}/channels/{channelId}": {
         parameters: {
             query?: never;
@@ -1155,6 +1171,14 @@ export interface components {
         ChangePasswordRequest: {
             currentPassword: string;
             newPassword: string;
+        };
+        MonitorChannelResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["ChannelType"];
+            isActive: boolean;
+            config: components["schemas"]["ChannelConfigResponse"];
         };
         ChannelConfigResponse: {
             email: null | components["schemas"]["EmailChannelConfigResponse"];
@@ -2724,6 +2748,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMonitorChannels: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["MonitorChannelResponse"][];
+                    "application/json": components["schemas"]["MonitorChannelResponse"][];
+                    "text/json": components["schemas"]["MonitorChannelResponse"][];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
                 };
             };
         };

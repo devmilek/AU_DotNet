@@ -37,10 +37,12 @@ export function MonitorDetailsView({
   monitorRef,
   monitorsHref,
   incidentsHref,
+  notificationsHref,
 }: {
   monitorRef: MonitorRef;
   monitorsHref: string;
   incidentsHref: string;
+  notificationsHref: string;
 }) {
   const monitor = useMonitor(monitorRef);
   const status = useMonitorStatus(monitorRef, monitor.data?.intervalSeconds);
@@ -96,6 +98,7 @@ export function MonitorDetailsView({
           monitor={monitor.data}
           monitorRef={monitorRef}
           editHref={`${monitorsHref}/${monitorRef.monitorId}/edit`}
+          notificationsHref={notificationsHref}
         />
       ) : (
         <div className="space-y-2">

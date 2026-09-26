@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Group, GroupSeparator } from "@/components/ui/group";
 import type { components } from "@/lib/api/schema";
+import { MonitorChannelsDialog } from "@/modules/channels/ui/monitor-channels-dialog";
 import type { MonitorRef } from "@/modules/monitors/hooks/keys";
 import {
   useSendTestAlert,
@@ -18,10 +19,12 @@ export function MonitorHeader({
   monitor,
   monitorRef,
   editHref,
+  notificationsHref,
 }: {
   monitor: Monitor;
   monitorRef: MonitorRef;
   editHref: string;
+  notificationsHref: string;
 }) {
   const setPaused = useSetMonitorPaused(monitorRef);
   const sendTestAlert = useSendTestAlert(monitorRef);
@@ -55,6 +58,12 @@ export function MonitorHeader({
           <BellRingIcon />
           Test alert
         </Button>
+        <GroupSeparator />
+        <MonitorChannelsDialog
+          monitorRef={monitorRef}
+          monitorName={monitor.name}
+          notificationsHref={notificationsHref}
+        />
         <GroupSeparator />
         <Button
           variant="outline"

@@ -5,6 +5,7 @@ import { toastManager } from "@/components/ui/toast";
 import { api } from "@/lib/api/client";
 import { ApiError, ensureOk, unwrap } from "@/lib/api/errors";
 import type { components } from "@/lib/api/schema";
+import type { MonitorRef } from "@/modules/monitors/hooks/keys";
 import { type ChannelRef, channelKeys } from "./keys";
 
 export function useChannels(organizationId: string) {
@@ -80,6 +81,65 @@ export function useSetChannelMonitors(ref: ChannelRef) {
       });
     },
     // lista pokazuje liczbę monitorów, szczegóły — ich listę
+    onSettled: () =>
+      queryClient.invalidateQueries({
+        queryKey: channelKeys.organization(ref.organizationId),
+      }),
+  });
+}
+
+export function useMonitorChannels({ organizationId, monitorId }: MonitorRef) {
+  return useQuery({
+    queryKey: channelKeys.forMonitor(organizationId, monitorId),
+    queryFn: () =>
+      unwrap(
+        api.GET("/api/{orgId}/monitors/{monitorId}/channels", {
+          params: { path: { orgId: organizationId, monitorId } },
+        }),
+        "Could not load the monitor's notification channels.",
+      ),
+  });
+}
+
+export function useToggleMonitorChannel(ref: MonitorRef) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ channelId, assign }: { channelId: string; assign: boolean }) => {
+      const params = {
+        path: {
+          orgId: ref.organizationId,
+          monitorId: ref.monitorId,
+          channelId,
+        },
+      };
+
+      return assign
+        ? ensureOk(
+            api.POST("/api/{orgId}/monitors/{monitorId}/channels/{channelId}", {
+              params,
+            }),
+            "Could not connect the channel.",
+          )
+        : ensureOk(
+            api.DELETE("/api/{orgId}/monitors/{monitorId}/channels/{channelId}", {
+              params,
+            }),
+            "Could not disconnect the channel.",
+          );
+    },
+    onError: (error, { assign }) => {
+      toastManager.add({
+        type: "error",
+        title: assign
+          ? "Could not connect the channel"
+          : "Could not disconnect the channel",
+        description:
+          error instanceof ApiError && error.status === 403
+            ? "You need admin permissions in this organization."
+            : error.message,
+      });
+    },
     onSettled: () =>
       queryClient.invalidateQueries({
         queryKey: channelKeys.organization(ref.organizationId),
