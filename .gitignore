@@ -23,4 +23,5 @@ TestResults/
 web/.certs/
 
 # Local file storage
-AU.Api/storage/
+AU.Api/storage/*
+!AU.Api/storage/*.cs
