@@ -1,0 +1,98 @@
+logging {
+  level = "warn"
+}
+
+prometheus.exporter.unix "host" {
+  procfs_path        = "/host/proc"
+  sysfs_path         = "/host/sys"
+  rootfs_path        = "/rootfs"
+  disable_collectors = ["ipvs", "btrfs", "infiniband", "xfs", "zfs"]
+
+  filesystem {
+    fs_types_exclude     = "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|tmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$"
+    mount_points_exclude = "^/(dev|proc|run/credentials/.+|sys|var/lib/docker/.+)($|/)"
+    mount_timeout        = "5s"
+  }
+
+  netclass {
+    ignored_devices = "^(veth.*|br-.*|docker.*|[a-f0-9]{15})$"
+  }
+
+  netdev {
+    device_exclude = "^(veth.*|br-.*|docker.*|[a-f0-9]{15})$"
+  }
+}
+
+prometheus.exporter.cadvisor "containers" {
+  docker_only                  = true
+  store_container_labels       = false
+  allowlisted_container_labels = ["com.docker.compose.service", "com.docker.compose.project"]
+}
+
+prometheus.exporter.postgres "app" {
+  data_source_names = [sys.env("POSTGRES_EXPORTER_DSN")]
+}
+
+prometheus.scrape "host" {
+  targets         = prometheus.exporter.unix.host.targets
+  job_name        = "node"
+  scrape_interval = "30s"
+  forward_to      = [prometheus.remote_write.monitoring.receiver]
+}
+
+prometheus.scrape "containers" {
+  targets         = prometheus.exporter.cadvisor.containers.targets
+  job_name        = "cadvisor"
+  scrape_interval = "30s"
+  forward_to      = [prometheus.remote_write.monitoring.receiver]
+}
+
+prometheus.scrape "postgres" {
+  targets         = prometheus.exporter.postgres.app.targets
+  job_name        = "postgres"
+  scrape_interval = "30s"
+  forward_to      = [prometheus.remote_write.monitoring.receiver]
+}
+
+prometheus.scrape "rabbitmq" {
+  targets         = [{"__address__" = "rabbitmq:15692"}]
+  job_name        = "rabbitmq"
+  scrape_interval = "30s"
+  forward_to      = [prometheus.remote_write.monitoring.receiver]
+}
+
+prometheus.scrape "rabbitmq_queues" {
+  targets         = [{"__address__" = "rabbitmq:15692"}]
+  job_name        = "rabbitmq-queues"
+  metrics_path    = "/metrics/detailed"
+  params          = {"family" = ["queue_coarse_metrics", "queue_consumer_count"]}
+  scrape_interval = "30s"
+  forward_to      = [prometheus.remote_write.monitoring.receiver]
+}
+
+otelcol.receiver.otlp "apps" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+
+  output {
+    metrics = [otelcol.exporter.prometheus.apps.input]
+  }
+}
+
+otelcol.exporter.prometheus "apps" {
+  forward_to = [prometheus.remote_write.monitoring.receiver]
+}
+
+prometheus.remote_write "monitoring" {
+  external_labels = {"server" = sys.env("SERVER_NAME")}
+
+  endpoint {
+    url = sys.env("METRICS_REMOTE_WRITE_URL")
+
+    basic_auth {
+      username = sys.env("METRICS_USERNAME")
+      password = sys.env("METRICS_PASSWORD")
+    }
+  }
+}

@@ -11,3 +11,5 @@ web
 AU.Api/storage
 docker-compose.yml
 Dockerfile
+deploy
+monitoring

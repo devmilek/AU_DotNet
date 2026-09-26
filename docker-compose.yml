@@ -2,7 +2,8 @@ x-dotnet-env: &dotnet-env
   ASPNETCORE_ENVIRONMENT: Production
   ConnectionStrings__app: Host=postgres;Port=5432;Database=app;Username=${POSTGRES_USER:?};Password=${POSTGRES_PASSWORD:?}
   ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USER:?}:${RABBITMQ_PASS:?}@rabbitmq:5672
-  OTEL_SDK_DISABLED: "true"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://alloy:4317
+  OTEL_EXPORTER_OTLP_PROTOCOL: grpc
 
 x-mail-env: &mail-env
   Auth__FrontendUrl: ${FRONTEND_URL:?}
@@ -108,10 +109,33 @@ services:
       - default
       - dokploy-network
 
+  alloy:
+    build:
+      context: ./deploy/alloy
+    restart: unless-stopped
+    privileged: true
+    environment:
+      SERVER_NAME: ${SERVER_NAME:?}
+      METRICS_REMOTE_WRITE_URL: ${METRICS_REMOTE_WRITE_URL:?}
+      METRICS_USERNAME: ${METRICS_USERNAME:?}
+      METRICS_PASSWORD: ${METRICS_PASSWORD:?}
+      POSTGRES_EXPORTER_DSN: postgresql://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@postgres:5432/app?sslmode=disable
+    volumes:
+      - alloydata:/var/lib/alloy/data
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /sys:/sys:ro
+      - /run/udev/data:/run/udev/data:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+
 volumes:
   pgdata:
   rabbitdata:
   storage:
+  alloydata:
 
 networks:
   dokploy-network:

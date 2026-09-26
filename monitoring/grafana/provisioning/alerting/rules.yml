@@ -1,0 +1,440 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: uptime-prod
+    folder: Alerty
+    interval: 1m
+    rules:
+      - uid: server-no-metrics
+        title: "Serwer nie wysyła metryk"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "max by (server) (node_boot_time_seconds)"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 0
+        noDataState: Alerting
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Od 5 minut nie przychodzą metryki z serwera aplikacji. Serwer, Docker albo agent Alloy nie działa."
+        labels:
+          severity: critical
+      - uid: disk-usage
+        title: "Kończy się miejsce na dysku"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "max by (server, mountpoint) (100 * (1 - node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay|squashfs\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay|squashfs\"}))"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 80
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Dysk {{ index .Labels \"mountpoint\" }} na {{ index .Labels \"server\" }} zajęty w {{ humanize (index .Values \"A\").Value }}%."
+        labels:
+          severity: warning
+      - uid: cpu-usage
+        title: "Wysokie użycie CPU"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "100 * (1 - avg by (server) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])))"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 85
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "CPU na {{ index .Labels \"server\" }} od 10 minut powyżej 85% ({{ humanize (index .Values \"A\").Value }}%)."
+        labels:
+          severity: warning
+      - uid: memory-usage
+        title: "Wysokie użycie RAM"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "max by (server) (100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes))"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 90
+        noDataState: OK
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "RAM na {{ index .Labels \"server\" }} zajęty w {{ humanize (index .Values \"A\").Value }}%."
+        labels:
+          severity: warning
+      - uid: queue-backlog
+        title: "Konsumenci nie nadążają"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "max by (server, queue) (rabbitmq_detailed_queue_messages_ready{queue=~\"monitor\\\\.check|incident\\\\.evaluate|notifications\"})"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 200
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "W kolejce {{ index .Labels \"queue\" }} czeka {{ humanize (index .Values \"A\").Value }} wiadomości od ponad 5 minut."
+        labels:
+          severity: warning
+      - uid: queue-no-consumers
+        title: "Kolejka bez konsumentów"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "min by (server, queue) (rabbitmq_detailed_queue_consumers{queue=~\"monitor\\\\.check|incident\\\\.evaluate|notifications\"})"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+        noDataState: OK
+        execErrState: Error
+        for: 3m
+        annotations:
+          summary: "Kolejka {{ index .Labels \"queue\" }} nie ma żadnego konsumenta. Worker nie działa."
+        labels:
+          severity: critical
+      - uid: dead-letters
+        title: "Wiadomości w dead letter queue"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "max by (server, queue) (rabbitmq_detailed_queue_messages{queue=~\".*dead-letter.*\"})"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0
+        noDataState: OK
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "W {{ index .Labels \"queue\" }} jest {{ humanize (index .Values \"A\").Value }} wiadomości, których nie udało się przetworzyć."
+        labels:
+          severity: warning
+      - uid: handler-failures
+        title: "Błędy handlerów Wolverine"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "sum by (server, job) (rate({__name__=~\"wolverine_execution_failure.*\"}[5m])) * 60"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "{{ index .Labels \"job\" }}: {{ humanize (index .Values \"A\").Value }} nieudanych wiadomości na minutę."
+        labels:
+          severity: warning
+      - uid: scheduler-stalled
+        title: "Scheduler nie planuje checków"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "sum by (server) (rate({__name__=~\"wolverine_messages_sent.*\", job=\"AU.CheckScheduler\"}[10m]))"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 0.0001
+        noDataState: Alerting
+        execErrState: Error
+        for: 10m
+        annotations:
+          summary: "CheckScheduler od 10 minut nie wysłał żadnej wiadomości do kolejki monitor.check."
+        labels:
+          severity: critical
+      - uid: container-restarts
+        title: "Kontener się restartuje"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "sum by (server, container_label_com_docker_compose_service) (changes(container_start_time_seconds{container_label_com_docker_compose_service!=\"\"}[15m]))"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 2
+        noDataState: OK
+        execErrState: Error
+        for: 0s
+        annotations:
+          summary: "Serwis {{ index .Labels \"container_label_com_docker_compose_service\" }} zrestartował się {{ humanize (index .Values \"A\").Value }} razy w 15 minut."
+        labels:
+          severity: warning
+      - uid: postgres-down
+        title: "PostgreSQL nie odpowiada"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "min by (server) (pg_up)"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: lt
+                    params:
+                      - 1
+        noDataState: OK
+        execErrState: Error
+        for: 2m
+        annotations:
+          summary: "Exporter nie może połączyć się z bazą na {{ index .Labels \"server\" }}."
+        labels:
+          severity: critical
+      - uid: http-5xx
+        title: "Błędy 5xx w API"
+        condition: C
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              refId: A
+              expr: "sum by (server, job) (rate(http_server_request_duration_seconds_count{http_response_status_code=~\"5..\"}[5m])) * 60"
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              datasource:
+                type: __expr__
+                uid: __expr__
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5
+        noDataState: OK
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "{{ index .Labels \"job\" }} zwraca {{ humanize (index .Values \"A\").Value }} odpowiedzi 5xx na minutę."
+        labels:
+          severity: warning

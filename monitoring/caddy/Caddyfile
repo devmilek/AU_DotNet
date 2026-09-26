@@ -1,0 +1,13 @@
+:80 {
+	basic_auth {
+		{$METRICS_USERNAME} {$METRICS_PASSWORD_HASH}
+	}
+
+	handle /api/v1/write {
+		reverse_proxy prometheus:9090
+	}
+
+	handle {
+		respond 404
+	}
+}
