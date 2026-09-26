@@ -54,7 +54,7 @@ public class Monitor
                 nameof(organizationId));
 
         ValidateName(name);
-        ValidateTarget(target);
+        ValidateTarget(type, target);
         ValidateInterval(intervalSeconds);
         ValidateTimeout(timeoutMs, intervalSeconds);
         ValidateThreshold(alertThreshold, nameof(alertThreshold));
@@ -100,7 +100,7 @@ public class Monitor
 
     public void UpdateTarget(string target)
     {
-        ValidateTarget(target);
+        ValidateTarget(Type, target);
         Target = target.Trim();
         Touch();
     }
@@ -192,10 +192,13 @@ public class Monitor
             throw new ArgumentException("Nazwa monitora nie może przekraczać 200 znaków.", nameof(name));
     }
 
-    private static void ValidateTarget(string target)
+    private static void ValidateTarget(MonitorType type, string target)
     {
         if (string.IsNullOrWhiteSpace(target))
             throw new ArgumentException("Target monitora nie może być pusty.", nameof(target));
+
+        if (type == MonitorType.Tcp && !TcpEndpoint.TryParse(target, out _))
+            throw new ArgumentException("Target monitora TCP musi mieć postać host:port.", nameof(target));
     }
 
     private static void ValidateInterval(int intervalSeconds)

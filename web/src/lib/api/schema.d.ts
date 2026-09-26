@@ -1425,6 +1425,18 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
         };
+        PhaseTimingsResponse: {
+            /** Format: double */
+            dnsMs: null | number;
+            /** Format: double */
+            connectMs: null | number;
+            /** Format: double */
+            tlsMs: null | number;
+            /** Format: double */
+            ttfbMs: null | number;
+            /** Format: double */
+            transferMs: null | number;
+        };
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
@@ -1462,6 +1474,7 @@ export interface components {
             minimumMs: null | number;
             /** Format: int32 */
             maximumMs: null | number;
+            phases: null | components["schemas"]["PhaseTimingsResponse"];
         };
         /** @enum {unknown} */
         ResponseTimeRange: "Last24Hours" | "Last7Days" | "Last30Days";
@@ -1472,6 +1485,7 @@ export interface components {
             minimumMs: null | number;
             /** Format: int32 */
             maximumMs: null | number;
+            phases: null | components["schemas"]["PhaseTimingsResponse"];
         };
         SetChannelMonitorsRequest: {
             monitorIds: string[];

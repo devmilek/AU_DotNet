@@ -47,16 +47,30 @@ public sealed record MonitorUptimeResponse(
 }
 
 /// <summary>Punkt wykresu czasu odpowiedzi (tylko udane checki); null = brak danych w kubełku.</summary>
+public sealed record PhaseTimingsResponse(
+    double? DnsMs,
+    double? ConnectMs,
+    double? TlsMs,
+    double? TtfbMs,
+    double? TransferMs)
+{
+    public static PhaseTimingsResponse? From(PhaseTimings? phases) => phases is null
+        ? null
+        : new PhaseTimingsResponse(phases.DnsMs, phases.ConnectMs, phases.TlsMs, phases.TtfbMs, phases.TransferMs);
+}
+
 public sealed record ResponseTimePointResponse(
     DateTimeOffset Timestamp,
     double? AverageMs,
     int? MinimumMs,
-    int? MaximumMs);
+    int? MaximumMs,
+    PhaseTimingsResponse? Phases);
 
 public sealed record ResponseTimeSummaryResponse(
     double? AverageMs,
     int? MinimumMs,
-    int? MaximumMs);
+    int? MaximumMs,
+    PhaseTimingsResponse? Phases);
 
 public sealed record MonitorResponseTimesResponse(
     ResponseTimeRange Range,
@@ -70,7 +84,12 @@ public sealed record MonitorResponseTimesResponse(
         result.From,
         result.BucketSeconds,
         result.Points
-            .Select(p => new ResponseTimePointResponse(p.Timestamp, p.AverageMs, p.MinimumMs, p.MaximumMs))
+            .Select(p => new ResponseTimePointResponse(
+                p.Timestamp, p.AverageMs, p.MinimumMs, p.MaximumMs, PhaseTimingsResponse.From(p.Phases)))
             .ToList(),
-        new ResponseTimeSummaryResponse(result.Summary.AverageMs, result.Summary.MinimumMs, result.Summary.MaximumMs));
+        new ResponseTimeSummaryResponse(
+            result.Summary.AverageMs,
+            result.Summary.MinimumMs,
+            result.Summary.MaximumMs,
+            PhaseTimingsResponse.From(result.Summary.Phases)));
 }

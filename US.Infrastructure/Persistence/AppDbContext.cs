@@ -16,6 +16,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityUser
     public DbSet<Check> MonitorChecks => Set<Check>();
     public DbSet<MonitorCheckHourly> MonitorChecksHourly => Set<MonitorCheckHourly>();
     public DbSet<MonitorCheckDaily> MonitorChecksDaily => Set<MonitorCheckDaily>();
+    public DbSet<MonitorCheckPhasesHourly> MonitorCheckPhasesHourly => Set<MonitorCheckPhasesHourly>();
     public DbSet<Incident> Incidents => Set<Incident>();
     public DbSet<IncidentNotification> IncidentNotifications => Set<IncidentNotification>();
     public DbSet<NotificationChannel> NotificationChannels => Set<NotificationChannel>();

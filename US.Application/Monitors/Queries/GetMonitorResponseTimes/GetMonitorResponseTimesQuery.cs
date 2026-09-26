@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using US.Application.Checks.Statistics;
 
 namespace US.Application.Monitors.Queries.GetMonitorResponseTimes;
 
@@ -17,12 +18,14 @@ public sealed record ResponseTimePoint(
     DateTimeOffset Timestamp,
     double? AverageMs,
     int? MinimumMs,
-    int? MaximumMs);
+    int? MaximumMs,
+    PhaseTimings? Phases);
 
 public sealed record ResponseTimeSummary(
     double? AverageMs,
     int? MinimumMs,
-    int? MaximumMs);
+    int? MaximumMs,
+    PhaseTimings? Phases);
 
 public sealed record MonitorResponseTimesResult(
     ResponseTimeRange Range,

@@ -1,5 +1,6 @@
 using FluentValidation;
 using US.Domain.Enums;
+using US.Domain.ValueObjects.Checks;
 
 namespace US.Application.Monitors.Commands.CreateMonitor;
 
@@ -47,6 +48,17 @@ public sealed class CreateMonitorValidator: AbstractValidator<CreateMonitorComma
                 .SetValidator(new HttpCheckSettingsValidator())
                 .When(x => x.Http is not null);
         });
+
+        When(x => x.Type == MonitorType.Tcp, () =>
+        {
+            RuleFor(x => x.Target)
+                .Must(target => TcpEndpoint.TryParse(target, out _))
+                .WithMessage("Target monitora TCP musi mieć postać host:port, np. db.example.com:5432.");
+        });
+
+        RuleFor(x => x.Type)
+            .Must(type => type is MonitorType.Http or MonitorType.Tcp)
+            .WithMessage("Obsługiwane są na razie monitory HTTP i TCP.");
     }
 }
 

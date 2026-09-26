@@ -5,6 +5,7 @@ import {
   ArrowUpToLineIcon,
   WavesIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import {
   Card,
@@ -27,11 +28,19 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTab } from "@/components/ui/tabs";
 import type { components } from "@/lib/api/schema";
 import { cn } from "@/lib/utils";
 import type { MonitorRef } from "@/modules/monitors/hooks/keys";
 import { useMonitorResponseTimes } from "@/modules/monitors/hooks/use-monitor-details";
 import { formatMilliseconds } from "@/modules/monitors/lib/format";
+import {
+  type PhaseKey,
+  phaseValues,
+  presentPhases,
+  type ResponsePhase,
+  responsePhases,
+} from "@/modules/monitors/lib/response-phases";
 import {
   type ResponseTimeRange,
   responseTimeRangeLabel,
@@ -40,27 +49,39 @@ import {
 
 type ResponseTimePoint = components["schemas"]["ResponseTimePointResponse"];
 
+type ChartMode = "breakdown" | "total";
+
 type ChartPoint = {
   time: number;
   averageMs: number | null;
   minimumMs: number | null;
   maximumMs: number | null;
-};
+} & Record<PhaseKey, number | null>;
 
 const chartConfig = {
   averageMs: { label: "Average", color: "var(--chart-1)" },
+  ...Object.fromEntries(
+    responsePhases.map((phase) => [
+      phase.key,
+      { label: phase.label, color: phase.color },
+    ]),
+  ),
 } satisfies ChartConfig;
 
 const rangeItems = Object.fromEntries(
   responseTimeRanges.map((range) => [range.value, range.label]),
 );
 
-function toChartPoint(point: ResponseTimePoint): ChartPoint {
+function toChartPoint(
+  point: ResponseTimePoint,
+  present: ResponsePhase[],
+): ChartPoint {
   return {
     time: new Date(point.timestamp).getTime(),
     averageMs: point.averageMs,
     minimumMs: point.minimumMs,
     maximumMs: point.maximumMs,
+    ...phaseValues(point.phases, present),
   };
 }
 
@@ -92,7 +113,12 @@ export function ResponseTimeCard({
   onRangeChange: (range: ResponseTimeRange) => void;
 }) {
   const responseTimes = useMonitorResponseTimes(monitorRef, range);
-  const data = responseTimes.data?.points.map(toChartPoint);
+  const [selectedMode, setSelectedMode] = useState<ChartMode>("breakdown");
+  const present = presentPhases(responseTimes.data?.points ?? []);
+  const mode: ChartMode = present.length > 0 ? selectedMode : "total";
+  const data = responseTimes.data?.points.map((point) =>
+    toChartPoint(point, present),
+  );
   const summary = responseTimes.data?.summary;
   const hasData = summary?.averageMs != null;
 
@@ -101,10 +127,23 @@ export function ResponseTimeCard({
       <CardHeader>
         <CardTitle>Response time</CardTitle>
         <CardDescription>
-          Successful checks over the{" "}
+          {mode === "breakdown"
+            ? "Where the time goes in successful checks over the "
+            : "Successful checks over the "}
           {responseTimeRangeLabel(range).toLowerCase()}.
         </CardDescription>
-        <CardAction>
+        <CardAction className="flex items-center gap-2">
+          {present.length > 0 ? (
+            <Tabs
+              value={mode}
+              onValueChange={(value) => setSelectedMode(value as ChartMode)}
+            >
+              <TabsList size="sm">
+                <TabsTab value="breakdown">Breakdown</TabsTab>
+                <TabsTab value="total">Total</TabsTab>
+              </TabsList>
+            </Tabs>
+          ) : null}
           <Select
             items={rangeItems}
             value={range}
@@ -177,9 +216,30 @@ export function ResponseTimeCard({
                 />
                 <ChartTooltip
                   cursor={{ stroke: "var(--border)" }}
-                  content={<ResponseTimeTooltip />}
+                  content={
+                    <ResponseTimeTooltip
+                      phases={mode === "breakdown" ? present : []}
+                    />
+                  }
                 />
+                {mode === "breakdown"
+                  ? present.map((phase) => (
+                      <Area
+                        key={phase.key}
+                        dataKey={phase.key}
+                        stackId="phases"
+                        type="monotone"
+                        stroke={`var(--color-${phase.key})`}
+                        fill={`var(--color-${phase.key})`}
+                        fillOpacity={0.32}
+                        strokeWidth={1.5}
+                        connectNulls={false}
+                        isAnimationActive={false}
+                      />
+                    ))
+                  : null}
                 <Area
+                  hide={mode === "breakdown"}
                   dataKey="averageMs"
                   type="monotone"
                   stroke="var(--color-averageMs)"
@@ -205,6 +265,10 @@ export function ResponseTimeCard({
             </p>
           ) : null}
         </div>
+
+        {mode === "breakdown" ? (
+          <PhaseLegend phases={present} averages={summary?.phases ?? null} />
+        ) : null}
 
         <dl className="grid grid-cols-3 border-t pt-5">
           <SummaryStat
@@ -262,12 +326,42 @@ function SummaryStat({
   );
 }
 
+function PhaseLegend({
+  phases,
+  averages,
+}: {
+  phases: ResponsePhase[];
+  averages: components["schemas"]["PhaseTimingsResponse"] | null;
+}) {
+  return (
+    <ul
+      className="-mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm"
+      aria-label="Average time per phase"
+    >
+      {phases.map((phase) => (
+        <li key={phase.key} className="flex items-center gap-2">
+          <span
+            className="size-2.5 rounded-sm"
+            style={{ backgroundColor: phase.color }}
+          />
+          <span className="text-muted-foreground">{phase.label}</span>
+          <span className="font-mono tabular-nums">
+            {formatMilliseconds(averages?.[phase.key])}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function ResponseTimeTooltip({
   active,
   payload,
+  phases,
 }: {
   active?: boolean;
   payload?: { payload: ChartPoint }[];
+  phases: ResponsePhase[];
 }) {
   const point = payload?.[0]?.payload;
   if (!active || !point) return null;
@@ -279,6 +373,20 @@ function ResponseTimeTooltip({
       </span>
       {point.averageMs == null ? (
         <span className="text-muted-foreground">No successful checks</span>
+      ) : phases.length > 0 ? (
+        <>
+          {phases.map((phase) => (
+            <TooltipRow
+              key={phase.key}
+              label={phase.label}
+              value={point[phase.key]}
+              color={phase.color}
+            />
+          ))}
+          <span className="mt-0.5 border-t pt-1.5">
+            <TooltipRow label="Total" value={point.averageMs} />
+          </span>
+        </>
       ) : (
         <>
           <TooltipRow label="Average" value={point.averageMs} />
@@ -290,10 +398,26 @@ function ResponseTimeTooltip({
   );
 }
 
-function TooltipRow({ label, value }: { label: string; value: number | null }) {
+function TooltipRow({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: number | null;
+  color?: string;
+}) {
   return (
     <span className="flex items-center justify-between gap-4">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="flex items-center gap-2 text-muted-foreground">
+        {color ? (
+          <span
+            className="size-2.5 rounded-sm"
+            style={{ backgroundColor: color }}
+          />
+        ) : null}
+        {label}
+      </span>
       <span className="font-mono tabular-nums">
         {formatMilliseconds(value)}
       </span>

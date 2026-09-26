@@ -21,6 +21,7 @@ public sealed class GetMonitorResponseTimesHandler
         GetMonitorResponseTimesQuery query,
         IMonitorRepository monitorRepository,
         IMonitorStatisticsReader statistics,
+        IPhaseTimingsReader phaseTimings,
         TimeProvider timeProvider,
         CancellationToken cancellationToken)
     {
@@ -36,13 +37,18 @@ public sealed class GetMonitorResponseTimesHandler
         var buckets = await statistics.GetResponseTimeBucketsAsync(monitor.Id, from, bucketSize, source, cancellationToken);
         var byTimestamp = buckets.ToDictionary(b => b.Bucket);
 
+        var phaseBuckets = await phaseTimings.GetPhaseBucketsAsync(monitor.Id, from, bucketSize, source, cancellationToken);
+        var phasesByTimestamp = phaseBuckets.ToDictionary(b => b.Bucket, b => b.Phases);
+        var phaseSummary = await phaseTimings.GetPhaseAveragesAsync(monitor.Id, from, source, cancellationToken);
+
         var points = Enumerable.Range(0, bucketCount)
             .Select(i =>
             {
                 var timestamp = from + bucketSize * i;
+                var phases = phasesByTimestamp.GetValueOrDefault(timestamp);
                 return byTimestamp.TryGetValue(timestamp, out var b)
-                    ? new ResponseTimePoint(timestamp, (double)b.SumMs / b.Count, b.MinMs, b.MaxMs)
-                    : new ResponseTimePoint(timestamp, null, null, null);
+                    ? new ResponseTimePoint(timestamp, (double)b.SumMs / b.Count, b.MinMs, b.MaxMs, phases)
+                    : new ResponseTimePoint(timestamp, null, null, null, phases);
             })
             .ToList();
 
@@ -51,18 +57,19 @@ public sealed class GetMonitorResponseTimesHandler
             from,
             (int)bucketSize.TotalSeconds,
             points,
-            Summarize(buckets));
+            Summarize(buckets, phaseSummary));
     }
 
     // średnia ważona liczbą checków — średnia ze średnich kubełków byłaby przekłamana
-    private static ResponseTimeSummary Summarize(IReadOnlyList<ResponseTimeBucket> buckets)
+    private static ResponseTimeSummary Summarize(IReadOnlyList<ResponseTimeBucket> buckets, PhaseTimings? phases)
     {
         var count = buckets.Sum(b => b.Count);
-        if (count == 0) return new ResponseTimeSummary(null, null, null);
+        if (count == 0) return new ResponseTimeSummary(null, null, null, phases);
 
         return new ResponseTimeSummary(
             (double)buckets.Sum(b => b.SumMs) / count,
             buckets.Min(b => b.MinMs),
-            buckets.Max(b => b.MaxMs));
+            buckets.Max(b => b.MaxMs),
+            phases);
     }
 }

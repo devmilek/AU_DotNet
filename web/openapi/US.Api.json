@@ -4428,6 +4428,53 @@
           }
         }
       },
+      "PhaseTimingsResponse": {
+        "required": [
+          "dnsMs",
+          "connectMs",
+          "tlsMs",
+          "ttfbMs",
+          "transferMs"
+        ],
+        "type": "object",
+        "properties": {
+          "dnsMs": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "connectMs": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "tlsMs": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "ttfbMs": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "transferMs": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          }
+        }
+      },
       "ProblemDetails": {
         "type": "object",
         "properties": {
@@ -4544,7 +4591,8 @@
           "timestamp",
           "averageMs",
           "minimumMs",
-          "maximumMs"
+          "maximumMs",
+          "phases"
         ],
         "type": "object",
         "properties": {
@@ -4572,6 +4620,16 @@
               "integer"
             ],
             "format": "int32"
+          },
+          "phases": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PhaseTimingsResponse"
+              }
+            ]
           }
         }
       },
@@ -4586,7 +4644,8 @@
         "required": [
           "averageMs",
           "minimumMs",
-          "maximumMs"
+          "maximumMs",
+          "phases"
         ],
         "type": "object",
         "properties": {
@@ -4610,6 +4669,16 @@
               "integer"
             ],
             "format": "int32"
+          },
+          "phases": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PhaseTimingsResponse"
+              }
+            ]
           }
         }
       },

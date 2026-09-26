@@ -99,6 +99,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<IMonitorStatisticsReader, MonitorStatisticsReader>();
+        services.AddScoped<IPhaseTimingsReader, PhaseTimingsReader>();
         services.TryAddSingleton(TimeProvider.System);
 
         return services;
@@ -121,11 +122,8 @@ public static class DependencyInjection
 
     public static IServiceCollection AddCheckers(this IServiceCollection services)
     {
-        // timeout pilnuje checker (TimeoutMs monitora), więc HttpClient.Timeout nie może go uprzedzić
-        services.AddHttpClient(HttpMonitorChecker.FollowRedirectsClient, c => c.Timeout = Timeout.InfiniteTimeSpan);
-        services.AddHttpClient(HttpMonitorChecker.NoRedirectsClient, c => c.Timeout = Timeout.InfiniteTimeSpan)
-            .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler { AllowAutoRedirect = false });
         services.AddScoped<IMonitorChecker, HttpMonitorChecker>();
+        services.AddScoped<IMonitorChecker, TcpMonitorChecker>();
 
         return services;
     }

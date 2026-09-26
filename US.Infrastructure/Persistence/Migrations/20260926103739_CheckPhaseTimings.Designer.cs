@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using US.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using US.Infrastructure.Persistence;
 namespace US.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260926103739_CheckPhaseTimings")]
+    partial class CheckPhaseTimings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -184,59 +187,6 @@ namespace US.Infrastructure.Persistence.Migrations
                         .HasAnnotation("TimescaleDb:RefreshPolicy:ScheduleInterval", "00:30:00")
                         .HasAnnotation("TimescaleDb:RefreshPolicy:StartOffset", "3 days")
                         .HasAnnotation("TimescaleDb:RetentionPolicy:DropAfter", "2 years");
-                });
-
-            modelBuilder.Entity("US.Application.Checks.ReadModels.MonitorCheckPhasesHourly", b =>
-                {
-                    b.Property<DateTimeOffset>("Bucket")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<long>("ConnectCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("ConnectSumMs")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("DnsCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("DnsSumMs")
-                        .HasColumnType("bigint");
-
-                    b.Property<Guid>("MonitorId")
-                        .HasColumnType("uuid");
-
-                    b.Property<long>("TlsCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("TlsSumMs")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TransferCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("TransferSumMs")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TtfbCount")
-                        .HasColumnType("bigint");
-
-                    b.Property<long?>("TtfbSumMs")
-                        .HasColumnType("bigint");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("monitor_check_phases_hourly", (string)null);
-
-                    b
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:MaterializedOnly", false)
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:Query", "SELECT time_bucket(INTERVAL '1 hour', c.checked_at) AS \"Bucket\",\n       c.monitor_id AS \"MonitorId\",\n       count(c.dns_ms) FILTER (WHERE c.status = 'UP') AS \"DnsCount\",\n       sum(c.dns_ms) FILTER (WHERE c.status = 'UP') AS \"DnsSumMs\",\n       count(c.connect_ms) FILTER (WHERE c.status = 'UP') AS \"ConnectCount\",\n       sum(c.connect_ms) FILTER (WHERE c.status = 'UP') AS \"ConnectSumMs\",\n       count(c.tls_ms) FILTER (WHERE c.status = 'UP') AS \"TlsCount\",\n       sum(c.tls_ms) FILTER (WHERE c.status = 'UP') AS \"TlsSumMs\",\n       count(c.ttfb_ms) FILTER (WHERE c.status = 'UP') AS \"TtfbCount\",\n       sum(c.ttfb_ms) FILTER (WHERE c.status = 'UP') AS \"TtfbSumMs\",\n       count(c.transfer_ms) FILTER (WHERE c.status = 'UP') AS \"TransferCount\",\n       sum(c.transfer_ms) FILTER (WHERE c.status = 'UP') AS \"TransferSumMs\"\nFROM checks AS c\nGROUP BY 1, 2")
-                        .HasAnnotation("TimescaleDb:ContinuousAggregate:WithNoData", true)
-                        .HasAnnotation("TimescaleDb:IsContinuousAggregate", true)
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:EndOffset", "01:00:00")
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:ScheduleInterval", "00:30:00")
-                        .HasAnnotation("TimescaleDb:RefreshPolicy:StartOffset", "3 days")
-                        .HasAnnotation("TimescaleDb:RetentionPolicy:DropAfter", "90 days");
                 });
 
             modelBuilder.Entity("US.Domain.Entities.Check", b =>

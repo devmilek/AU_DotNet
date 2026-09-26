@@ -26,6 +26,11 @@ public sealed class CheckConfiguration : IEntityTypeConfiguration<Check>
         builder.Property(c => c.ErrorMessage).HasColumnName("error_message");
         builder.Property(c => c.WasInMaintenance).HasColumnName("was_in_maintenance");
         builder.Property(c => c.MaintenanceOccurrenceId).HasColumnName("maintenance_occurrence_id");
+        builder.Property(c => c.DnsMs).HasColumnName("dns_ms");
+        builder.Property(c => c.ConnectMs).HasColumnName("connect_ms");
+        builder.Property(c => c.TlsMs).HasColumnName("tls_ms");
+        builder.Property(c => c.TtfbMs).HasColumnName("ttfb_ms");
+        builder.Property(c => c.TransferMs).HasColumnName("transfer_ms");
 
         // hypertabela: każdy unikalny klucz musi zawierać kolumnę partycjonującą
         builder.HasKey(c => new { c.Id, c.CheckedAt });

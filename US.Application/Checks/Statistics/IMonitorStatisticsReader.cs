@@ -36,6 +36,35 @@ public interface IMonitorStatisticsReader
         CancellationToken ct = default);
 }
 
+public interface IPhaseTimingsReader
+{
+    Task<IReadOnlyList<PhaseTimingsBucket>> GetPhaseBucketsAsync(
+        Guid monitorId,
+        DateTimeOffset from,
+        TimeSpan bucketSize,
+        ResponseTimeSource source,
+        CancellationToken ct = default);
+
+    Task<PhaseTimings?> GetPhaseAveragesAsync(
+        Guid monitorId,
+        DateTimeOffset from,
+        ResponseTimeSource source,
+        CancellationToken ct = default);
+}
+
+public sealed record PhaseTimings(
+    double? DnsMs,
+    double? ConnectMs,
+    double? TlsMs,
+    double? TtfbMs,
+    double? TransferMs)
+{
+    public bool HasAny => DnsMs is not null || ConnectMs is not null || TlsMs is not null
+                          || TtfbMs is not null || TransferMs is not null;
+}
+
+public sealed record PhaseTimingsBucket(DateTimeOffset Bucket, PhaseTimings Phases);
+
 public enum RollupGranularity
 {
     Hourly,
