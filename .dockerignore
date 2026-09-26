@@ -1,0 +1,13 @@
+**/bin
+**/obj
+**/node_modules
+**/.next
+**/.certs
+**/*.user
+.git
+.idea
+.claude
+web
+AU.Api/storage
+docker-compose.yml
+Dockerfile

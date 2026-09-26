@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Hangfire;
+using Microsoft.AspNetCore.HttpOverrides;
 using JasperFx.CodeGeneration.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,13 @@ builder.Services.AddExceptionHandler<ForbiddenExceptionHandler>();
 builder.Services.AddExceptionHandler<ConflictExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddAppRateLimiting();
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.ForwardLimit = 2;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 builder.Host.UseWolverine(opts =>
 {

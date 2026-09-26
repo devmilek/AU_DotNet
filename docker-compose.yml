@@ -1,0 +1,118 @@
+x-dotnet-env: &dotnet-env
+  ASPNETCORE_ENVIRONMENT: Production
+  ConnectionStrings__app: Host=postgres;Port=5432;Database=app;Username=${POSTGRES_USER:?};Password=${POSTGRES_PASSWORD:?}
+  ConnectionStrings__rabbitmq: amqp://${RABBITMQ_USER:?}:${RABBITMQ_PASS:?}@rabbitmq:5672
+  OTEL_SDK_DISABLED: "true"
+
+x-mail-env: &mail-env
+  Auth__FrontendUrl: ${FRONTEND_URL:?}
+  Smtp__Host: ${SMTP_HOST:?}
+  Smtp__Port: ${SMTP_PORT:?}
+  Smtp__Username: ${SMTP_USERNAME:?}
+  Smtp__Password: ${SMTP_PASSWORD:?}
+  Smtp__FromAddress: ${SMTP_FROM:?}
+
+x-dotnet: &dotnet
+  restart: unless-stopped
+  depends_on:
+    postgres:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+
+services:
+  postgres:
+    image: timescale/timescaledb:2.30.1-pg18
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      POSTGRES_DB: app
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d app"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  rabbitmq:
+    image: rabbitmq:4-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:?}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:?}
+    volumes:
+      - rabbitdata:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 30
+
+  api:
+    <<: *dotnet
+    build:
+      context: .
+      args:
+        PROJECT: AU.Api
+    environment:
+      <<: [*dotnet-env, *mail-env]
+    volumes:
+      - storage:/app/storage
+
+  check-scheduler:
+    <<: *dotnet
+    build:
+      context: .
+      args:
+        PROJECT: AU.CheckScheduler
+    environment: *dotnet-env
+
+  check-worker:
+    <<: *dotnet
+    build:
+      context: .
+      args:
+        PROJECT: AU.CheckWorker
+    environment: *dotnet-env
+
+  jobs:
+    <<: *dotnet
+    build:
+      context: .
+      args:
+        PROJECT: AU.Jobs
+    environment: *dotnet-env
+
+  notification-worker:
+    <<: *dotnet
+    build:
+      context: .
+      args:
+        PROJECT: AU.NotificationWorker
+    environment:
+      <<: [*dotnet-env, *mail-env]
+
+  web:
+    build:
+      context: ./web
+      args:
+        API_URL: http://api:8080
+    restart: unless-stopped
+    environment:
+      API_URL: http://api:8080
+    depends_on:
+      - api
+    networks:
+      - default
+      - dokploy-network
+
+volumes:
+  pgdata:
+  rabbitdata:
+  storage:
+
+networks:
+  dokploy-network:
+    external: true

@@ -1,0 +1,7 @@
+node_modules
+.next
+.certs
+.env*
+Dockerfile
+tsconfig.tsbuildinfo
+package-lock.json
