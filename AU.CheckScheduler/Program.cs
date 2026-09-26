@@ -15,6 +15,7 @@ var rabbitConnectionString = builder.Configuration.GetConnectionString("rabbitmq
 
 builder.UseWolverine(opts =>
 {
+    opts.UseRuntimeCompilation();
     opts.UseRabbitMq(rabbitConnectionString).AutoProvision();
     
     opts.PublishMessage<CheckMonitorCommand>().ToRabbitQueue("monitor.check");

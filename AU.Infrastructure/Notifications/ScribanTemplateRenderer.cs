@@ -79,8 +79,8 @@ public sealed class ScribanEmailTemplateRenderer(IOptions<FrontendOptions> front
         public string Load(TemplateContext context, SourceSpan callerSpan, string templatePath) =>
             ReadResource(templatePath);
 
-        public ValueTask<string> LoadAsync(TemplateContext context, SourceSpan callerSpan, string templatePath) =>
-            ValueTask.FromResult(ReadResource(templatePath));
+        public ValueTask<string?> LoadAsync(TemplateContext context, SourceSpan callerSpan, string templatePath) =>
+            ValueTask.FromResult<string?>(ReadResource(templatePath));
 
         public static string ReadResource(string fileName)
         {

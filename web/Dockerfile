@@ -4,9 +4,11 @@ ARG API_URL
 ENV API_URL=$API_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN --mount=type=cache,id=bun,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile
 COPY . .
-RUN bun run build
+RUN --mount=type=cache,id=next,target=/app/.next/cache \
+    bun run build
 
 FROM node:22-alpine
 WORKDIR /app
