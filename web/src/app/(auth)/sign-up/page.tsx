@@ -2,7 +2,13 @@ import { SignUpForm } from "@/modules/auth/ui/components/sign-up-form";
 import { SocialsSign } from "@/modules/auth/ui/components/socials-sign";
 import Link from "next/link";
 
-const SignUpPage = async () => {
+const SignUpPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ email?: string | string[] }>;
+}) => {
+  const { email } = await searchParams;
+
   // const { user } = await getCurrentSession();
   // if (user) {
   //   redirect("/");
@@ -16,7 +22,7 @@ const SignUpPage = async () => {
           Enter your details below to create your account
         </p>
       </div>
-      <SignUpForm />
+      <SignUpForm defaultEmail={Array.isArray(email) ? email[0] : email} />
       <SocialsSign />
       <p className="text-sm text-center text-muted-foreground">
         Already have an account?{" "}

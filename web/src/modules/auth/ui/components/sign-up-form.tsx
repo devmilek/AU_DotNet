@@ -15,13 +15,13 @@ import {
 import { api } from "@/lib/api/client";
 import { useRouter } from "next/navigation";
 
-const defaultValues: SignUpValues = {
-  name: "",
-  email: "",
-  password: "",
-};
+export function SignUpForm({ defaultEmail = "" }: { defaultEmail?: string }) {
+  const defaultValues: SignUpValues = {
+    name: "",
+    email: defaultEmail,
+    password: "",
+  };
 
-export function SignUpForm() {
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
 

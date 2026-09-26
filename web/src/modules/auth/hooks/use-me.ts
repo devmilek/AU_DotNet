@@ -20,5 +20,7 @@ export function useMe() {
 
       return data;
     },
+    retry: (failureCount, error) =>
+      error.message !== "Unauthorized" && failureCount < 3,
   });
 }

@@ -1,6 +1,11 @@
 "use client";
 
-import { Activity } from "lucide-react";
+import {
+  Activity,
+  BellIcon,
+  CalendarClockIcon,
+  SettingsIcon,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -11,20 +16,35 @@ import {
 import { NavMain } from "./nav-main";
 import { OrganizationSwitcher } from "./organization-switcher";
 import { NavUser } from "./nav-user";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
+import { useOrganizations } from "@/modules/organizations/hooks/use-organizations";
+import { SidebarMonitors } from "@/modules/monitors/ui/sidebar-monitors";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams<{ organizationSlug: string }>();
+  const pathname = usePathname();
   const slug = params.organizationSlug;
+  const organizations = useOrganizations();
+  const organization = organizations.data?.find((item) => item.slug === slug);
 
   const navMain = [
+    { title: "Monitors", url: `/${slug}/monitors`, icon: Activity },
     {
-      title: "Monitors",
-      url: `/${slug}/monitors`,
-      icon: Activity,
-      isActive: true,
+      title: "Notifications",
+      url: `/${slug}/notifications`,
+      icon: BellIcon,
     },
-  ];
+    {
+      title: "Maintenance windows",
+      url: `/${slug}/maintenance-windows`,
+      icon: CalendarClockIcon,
+    },
+    { title: "Settings", url: `/${slug}/settings`, icon: SettingsIcon },
+  ].map((item) => ({
+    ...item,
+    // aktywna także na podstronach (szczegóły, tworzenie)
+    isActive: pathname === item.url || pathname.startsWith(`${item.url}/`),
+  }));
 
   return (
     <Sidebar collapsible="icon" variant="floating" {...props}>
@@ -33,6 +53,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
+        {organization ? (
+          <SidebarMonitors
+            organizationId={organization.id}
+            organizationSlug={slug}
+          />
+        ) : null}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

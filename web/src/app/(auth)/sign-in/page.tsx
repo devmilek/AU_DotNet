@@ -1,8 +1,15 @@
+import { safeReturnUrl } from "@/modules/auth/lib/safe-return-url";
 import { SignInForm } from "@/modules/auth/ui/components/sign-in-form";
 import { SocialsSign } from "@/modules/auth/ui/components/socials-sign";
 import Link from "next/link";
 
-const SignInPage = async () => {
+const SignInPage = async ({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnUrl?: string | string[] }>;
+}) => {
+  const returnUrl = safeReturnUrl((await searchParams).returnUrl);
+
   // const { user } = await getCurrentSession();
   // if (user) {
   //   redirect("/");
@@ -16,7 +23,7 @@ const SignInPage = async () => {
           Enter your email below to login to your account
         </p>
       </div>
-      <SignInForm />
+      <SignInForm returnUrl={returnUrl} />
       <SocialsSign />
       <p className="text-sm text-center text-muted-foreground">
         Don&apos;t have an account?{" "}

@@ -437,6 +437,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/{orgId}/channels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetChannels"];
+        put?: never;
+        post: operations["CreateChannel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/{orgId}/channels/{id}": {
         parameters: {
             query?: never;
@@ -453,7 +469,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/{orgId}/channels": {
+    "/api/{orgId}/channels/{id}/monitors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["SetChannelMonitors"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMaintenanceWindows"];
+        put?: never;
+        post: operations["CreateMaintenanceWindow"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/occurrences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMaintenanceOccurrences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMaintenanceWindow"];
+        put?: never;
+        post?: never;
+        delete: operations["DeleteMaintenanceWindow"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}/occurrences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetWindowOccurrences"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}/occurrences/{occurrenceId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateOccurrenceContent"];
+        post?: never;
+        delete: operations["ResetOccurrenceContent"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}/occurrences/{occurrenceId}/cancel": {
         parameters: {
             query?: never;
             header?: never;
@@ -462,7 +574,87 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["CreateChannel"];
+        post: operations["CancelOccurrence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}/occurrences/{occurrenceId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RestoreOccurrence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["RenameMaintenanceWindow"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}/schedule": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateMaintenanceWindowSchedule"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateMaintenanceWindowPolicy"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/maintenance-windows/{id}/monitors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["SetMaintenanceWindowMonitors"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -477,6 +669,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["GetMonitor"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/monitors/statuses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMonitorStatuses"];
         put?: never;
         post?: never;
         delete?: never;
@@ -501,6 +709,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/{orgId}/monitors/{monitorId}/pause": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["PauseMonitor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/monitors/{monitorId}/resume": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ResumeMonitor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/{orgId}/monitors/{monitorId}/channels/{channelId}": {
         parameters: {
             query?: never;
@@ -517,6 +757,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/{orgId}/monitors/{monitorId}/maintenance-windows/{windowId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AssignMaintenanceWindowToMonitor"];
+        delete: operations["UnassignMaintenanceWindowFromMonitor"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/{orgId}/monitors/{monitorId}/test-notification": {
         parameters: {
             query?: never;
@@ -527,6 +783,86 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["SendTestNotification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/monitors/{monitorId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMonitorStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/monitors/{monitorId}/uptime": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMonitorUptime"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/monitors/{monitorId}/response-times": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMonitorResponseTimes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invitations/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetInvitationPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/invitations/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AcceptInvitation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -624,10 +960,90 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["GetInvitations"];
         put?: never;
         post: operations["InviteMember"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizations/{orgId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetOrganization"];
+        put: operations["UpdateOrganization"];
+        post?: never;
+        delete: operations["DeleteOrganization"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizations/{orgId}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetMembers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizations/{orgId}/members/{userId}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["ChangeMemberRole"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizations/{orgId}/members/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["RemoveMember"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizations/{orgId}/invitations/{invitationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["RevokeInvitation"];
         options?: never;
         head?: never;
         patch?: never;
@@ -637,9 +1053,23 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ChangeMemberRoleRequest: {
+            role: components["schemas"]["OrganizationRole"];
+        };
         ChangePasswordRequest: {
             currentPassword: string;
             newPassword: string;
+        };
+        ChannelConfigResponse: {
+            email: null | components["schemas"]["EmailChannelConfigResponse"];
+        };
+        ChannelMonitorResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["MonitorType"];
+            target: string;
+            isActive: boolean;
         };
         /** @enum {unknown} */
         ChannelType: "Email" | "Discord" | "Slack" | "Webhook";
@@ -648,29 +1078,97 @@ export interface components {
             userId: string;
             token: string;
         };
+        CreateMaintenanceWindowRequest: {
+            name: string;
+            description: null | string;
+            schedule: components["schemas"]["MaintenanceScheduleInput"];
+            monitorIds: string[];
+            /** @default true */
+            suppressNotifications: boolean;
+            /** @default true */
+            excludeFromSla: boolean;
+        };
         CreateMonitorRequest: {
             name: string;
             type: components["schemas"]["MonitorType"];
             target: string;
             /** Format: int32 */
-            intervalSeconds: number | string;
+            intervalSeconds: number;
             /** Format: int32 */
-            timeoutMs: number | string;
+            timeoutMs: number;
             /** Format: int32 */
-            alertThreshold: number | string;
+            alertThreshold: number;
             /** Format: int32 */
-            recoveryThreshold: number | string;
+            recoveryThreshold: number;
+            http?: null | components["schemas"]["HttpCheckSettings"];
         };
         CreateNotificationChannelRequest: {
             name: string;
             type: components["schemas"]["ChannelType"];
-            emailTo: null | string[];
+            email?: null | components["schemas"]["EmailChannelSettings"];
+            monitorIds?: null | string[];
         };
         CreateOrganizationCommand: {
             name: string;
         };
+        DeleteOrganizationRequest: {
+            confirmationName: string;
+        };
+        EmailChannelConfigResponse: {
+            to: string[];
+        };
+        EmailChannelSettings: {
+            to: string[];
+        };
         ForgotPasswordRequest: {
             email: string;
+        };
+        HourlyCheckSummaryResponse: {
+            /** Format: date-time */
+            hour: string;
+            /** Format: int32 */
+            upChecks: number;
+            /** Format: int32 */
+            downChecks: number;
+            /** Format: int32 */
+            expectedChecks: number;
+        };
+        HttpAuthResponse: {
+            type: components["schemas"]["HttpAuthType"];
+            username: null | string;
+            hasPassword: boolean;
+            hasToken: boolean;
+        };
+        HttpAuthSettings: {
+            type: components["schemas"]["HttpAuthType"];
+            username: null | string;
+            password: null | string;
+            token: null | string;
+        };
+        /** @enum {unknown} */
+        HttpAuthType: "None" | "Basic" | "Bearer";
+        HttpCheckConfigResponse: {
+            method: components["schemas"]["HttpCheckMethod"];
+            followRedirects: boolean;
+            acceptedStatusCodes: components["schemas"]["StatusCodeRangeSettings"][];
+            auth: components["schemas"]["HttpAuthResponse"];
+        };
+        /** @enum {unknown} */
+        HttpCheckMethod: "Get" | "Head" | "Post" | "Put" | "Patch" | "Delete" | "Options";
+        HttpCheckSettings: {
+            method: components["schemas"]["HttpCheckMethod"];
+            followRedirects: boolean;
+            acceptedStatusCodes: null | components["schemas"]["StatusCodeRangeSettings"][];
+            auth: null | components["schemas"]["HttpAuthSettings"];
+        };
+        InvitationPreview: {
+            organizationName: string;
+            email: string;
+            role: components["schemas"]["OrganizationRole"];
+            invitedByName: null | string;
+            /** Format: date-time */
+            expiresAt: string;
+            state: components["schemas"]["InvitationState"];
         };
         InvitationResponse: {
             /** Format: uuid */
@@ -680,9 +1178,21 @@ export interface components {
             /** Format: date-time */
             expiresAt: string;
         };
+        /** @enum {unknown} */
+        InvitationState: "Pending" | "Accepted" | "Revoked" | "Expired";
         InviteMemberRequest: {
             email: string;
             role: components["schemas"]["OrganizationRole"];
+        };
+        LastCheckResponse: {
+            /** Format: date-time */
+            checkedAt: string;
+            isUp: boolean;
+            /** Format: int32 */
+            responseTimeMs: null | number;
+            /** Format: int32 */
+            statusCode: null | number;
+            errorMessage: null | string;
         };
         LoginRequest: {
             email: string;
@@ -690,45 +1200,201 @@ export interface components {
             /** @default false */
             rememberMe: boolean;
         };
+        MaintenanceOccurrenceResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            maintenanceWindowId: string;
+            name: string;
+            /** Format: date-time */
+            startsAtUtc: string;
+            /** Format: date-time */
+            endsAtUtc: string;
+        };
+        /** @enum {unknown} */
+        MaintenanceOccurrenceStatus: "Scheduled" | "Cancelled";
+        MaintenanceScheduleInput: {
+            timeZoneId: string;
+            /** Format: date-time */
+            startsAtLocal: string;
+            /** Format: int32 */
+            durationMinutes: number;
+            recurrenceRule?: null | string;
+            /** Format: date-time */
+            recurrenceEndLocal?: null | string;
+        };
+        MaintenanceWindowListItemResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: null | string;
+            timeZoneId: string;
+            /** Format: date-time */
+            startsAtLocal: string;
+            /** Format: int32 */
+            durationMinutes: number;
+            recurrenceRule: null | string;
+            /** Format: date-time */
+            recurrenceEndLocal: null | string;
+            suppressNotifications: boolean;
+            excludeFromSla: boolean;
+            monitors: components["schemas"]["MonitorNameResponse"][];
+            nextOccurrence: null | components["schemas"]["OccurrenceSlotResponse"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        MaintenanceWindowMonitorResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["MonitorType"];
+            target: string;
+            isActive: boolean;
+        };
+        MaintenanceWindowResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: null | string;
+            timeZoneId: string;
+            /** Format: date-time */
+            startsAtLocal: string;
+            /** Format: int32 */
+            durationMinutes: number;
+            recurrenceRule: null | string;
+            /** Format: date-time */
+            recurrenceEndLocal: null | string;
+            suppressNotifications: boolean;
+            excludeFromSla: boolean;
+            monitors: components["schemas"]["MaintenanceWindowMonitorResponse"][];
+            nextOccurrence: null | components["schemas"]["OccurrenceSlotResponse"];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        MemberRow: {
+            /** Format: uuid */
+            userId: string;
+            email: string;
+            displayName: null | string;
+            role: components["schemas"]["OrganizationRole"];
+            /** Format: date-time */
+            joinedAt: string;
+            isCurrentUser: boolean;
+        };
         MeResponse: {
             /** Format: uuid */
             id: string;
             email: string;
             displayName: null | string;
         };
-        Monitor: {
+        MonitorListItemResponse: {
+            monitor: components["schemas"]["MonitorResponse"];
+            last24Hours: components["schemas"]["HourlyCheckSummaryResponse"][];
+        };
+        MonitorNameResponse: {
             /** Format: uuid */
-            id?: string;
+            id: string;
+            name: string;
+        };
+        MonitorResponse: {
             /** Format: uuid */
-            claimToken?: null | string;
-            name?: string;
-            target?: string;
-            type?: components["schemas"]["MonitorType"];
-            /** Format: int32 */
-            intervalSeconds?: number | string;
-            /** Format: int32 */
-            timeoutMs?: number | string;
-            /** Format: int32 */
-            alertThreshold?: number | string;
-            /** Format: int32 */
-            recoveryThreshold?: number | string;
-            notifyOnRecovery?: boolean;
-            /** Format: int32 */
-            consecutiveSuccesses?: number | string;
-            /** Format: int32 */
-            consecutiveFailures?: number | string;
-            isActive?: boolean;
+            id: string;
             /** Format: uuid */
-            organizationId?: string;
+            organizationId: string;
+            name: string;
+            type: components["schemas"]["MonitorType"];
+            target: string;
+            /** Format: int32 */
+            intervalSeconds: number;
+            /** Format: int32 */
+            timeoutMs: number;
+            /** Format: int32 */
+            alertThreshold: number;
+            /** Format: int32 */
+            recoveryThreshold: number;
+            notifyOnRecovery: boolean;
+            isActive: boolean;
             /** Format: date-time */
-            createdAt?: string;
+            createdAt: string;
             /** Format: date-time */
-            updatedAt?: string;
+            updatedAt: string;
+            http: null | components["schemas"]["HttpCheckConfigResponse"];
+        };
+        MonitorResponseTimesResponse: {
+            range: components["schemas"]["ResponseTimeRange"];
             /** Format: date-time */
-            nextCheckAt?: string;
+            from: string;
+            /** Format: int32 */
+            bucketSeconds: number;
+            points: components["schemas"]["ResponseTimePointResponse"][];
+            summary: components["schemas"]["ResponseTimeSummaryResponse"];
+        };
+        /** @enum {unknown} */
+        MonitorSortBy: "CreatedAt" | "Status";
+        /** @enum {unknown} */
+        MonitorStatus: "Pending" | "Up" | "Down" | "Paused";
+        MonitorStatusResponse: {
+            status: components["schemas"]["MonitorStatus"];
+            /** Format: date-time */
+            since: null | string;
+            lastCheck: null | components["schemas"]["LastCheckResponse"];
+        };
+        MonitorStatusSummaryResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            status: components["schemas"]["MonitorStatus"];
         };
         /** @enum {unknown} */
         MonitorType: "Http" | "Ping" | "Ssl" | "Tcp";
+        MonitorUptimeResponse: {
+            periods: components["schemas"]["UptimePeriodResponse"][];
+            last24Hours: components["schemas"]["HourlyCheckSummaryResponse"][];
+        };
+        NotificationChannelListItemResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["ChannelType"];
+            isActive: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            config: components["schemas"]["ChannelConfigResponse"];
+            /** Format: int32 */
+            monitorCount: number;
+        };
+        NotificationChannelResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            type: components["schemas"]["ChannelType"];
+            isActive: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            config: components["schemas"]["ChannelConfigResponse"];
+            monitors: components["schemas"]["ChannelMonitorResponse"][];
+        };
+        OccurrenceSlotResponse: {
+            /** Format: date-time */
+            startsAtUtc: string;
+            /** Format: date-time */
+            endsAtUtc: string;
+        };
+        OrganizationDetails: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            slug: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: int32 */
+            memberCount: number;
+            currentUserRole: components["schemas"]["OrganizationRole"];
+        };
         OrganizationResponse: {
             /** Format: uuid */
             id: string;
@@ -737,11 +1403,33 @@ export interface components {
             role: components["schemas"]["OrganizationRole"];
         };
         OrganizationRole: number;
+        PagedResultOfMonitorListItemResponse: {
+            items: components["schemas"]["MonitorListItemResponse"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            totalCount: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
+        PendingInvitationRow: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            role: components["schemas"]["OrganizationRole"];
+            invitedByName: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            expiresAt: string;
+        };
         ProblemDetails: {
             type?: null | string;
             title?: null | string;
             /** Format: int32 */
-            status?: null | number | string;
+            status?: null | number;
             detail?: null | string;
             instance?: null | string;
         };
@@ -749,6 +1437,12 @@ export interface components {
             email: string;
             password: string;
             displayName: null | string;
+        };
+        RenameMaintenanceWindowRequest: {
+            name: string;
+            description: null | string;
+            /** @default false */
+            applyToPastOccurrences: boolean;
         };
         ResendConfirmationRequest: {
             email: string;
@@ -759,6 +1453,79 @@ export interface components {
             token: string;
             newPassword: string;
         };
+        ResponseTimePointResponse: {
+            /** Format: date-time */
+            timestamp: string;
+            /** Format: double */
+            averageMs: null | number;
+            /** Format: int32 */
+            minimumMs: null | number;
+            /** Format: int32 */
+            maximumMs: null | number;
+        };
+        /** @enum {unknown} */
+        ResponseTimeRange: "Last24Hours" | "Last7Days" | "Last30Days";
+        ResponseTimeSummaryResponse: {
+            /** Format: double */
+            averageMs: null | number;
+            /** Format: int32 */
+            minimumMs: null | number;
+            /** Format: int32 */
+            maximumMs: null | number;
+        };
+        SetChannelMonitorsRequest: {
+            monitorIds: string[];
+        };
+        SetMaintenanceWindowMonitorsRequest: {
+            monitorIds: string[];
+        };
+        /** @enum {unknown} */
+        SortOrder: "Asc" | "Desc";
+        StatusCodeRangeSettings: {
+            /** Format: int32 */
+            from: number;
+            /** Format: int32 */
+            to: number;
+        };
+        UpdateMaintenanceWindowPolicyRequest: {
+            suppressNotifications: boolean;
+            excludeFromSla: boolean;
+        };
+        UpdateOccurrenceContentRequest: {
+            name: string;
+            description: null | string;
+        };
+        UpdateOrganizationRequest: {
+            name: string;
+        };
+        /** @enum {unknown} */
+        UptimePeriod: "Last24Hours" | "Last7Days" | "Last30Days" | "Last365Days";
+        UptimePeriodResponse: {
+            period: components["schemas"]["UptimePeriod"];
+            /** Format: date-time */
+            from: string;
+            /** Format: int64 */
+            totalChecks: number;
+            /** Format: int64 */
+            upChecks: number;
+            /** Format: double */
+            uptimeRatio: null | number;
+        };
+        WindowOccurrenceResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: null | string;
+            /** Format: date-time */
+            startsAtUtc: string;
+            /** Format: date-time */
+            endsAtUtc: string;
+            /** Format: date-time */
+            scheduledStartUtc: string;
+            status: components["schemas"]["MaintenanceOccurrenceStatus"];
+            followsWindow: boolean;
+            differsFromWindow: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -768,13 +1535,12 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    GetChannel: {
+    GetChannels: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 orgId: string;
-                id: string;
             };
             cookie?: never;
         };
@@ -786,7 +1552,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["NotificationChannelListItemResponse"][];
                 };
             };
             default: {
@@ -835,6 +1601,551 @@ export interface operations {
             };
         };
     };
+    GetChannel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["NotificationChannelResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetChannelMonitors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetChannelMonitorsRequest"];
+                "text/json": components["schemas"]["SetChannelMonitorsRequest"];
+                "application/*+json": components["schemas"]["SetChannelMonitorsRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMaintenanceWindows: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaintenanceWindowListItemResponse"][];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CreateMaintenanceWindow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateMaintenanceWindowRequest"];
+                "text/json": components["schemas"]["CreateMaintenanceWindowRequest"];
+                "application/*+json": components["schemas"]["CreateMaintenanceWindowRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMaintenanceOccurrences: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaintenanceOccurrenceResponse"][];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMaintenanceWindow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MaintenanceWindowResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteMaintenanceWindow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetWindowOccurrences: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WindowOccurrenceResponse"][];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateOccurrenceContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+                occurrenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateOccurrenceContentRequest"];
+                "text/json": components["schemas"]["UpdateOccurrenceContentRequest"];
+                "application/*+json": components["schemas"]["UpdateOccurrenceContentRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ResetOccurrenceContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+                occurrenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CancelOccurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+                occurrenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RestoreOccurrence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+                occurrenceId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RenameMaintenanceWindow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RenameMaintenanceWindowRequest"];
+                "text/json": components["schemas"]["RenameMaintenanceWindowRequest"];
+                "application/*+json": components["schemas"]["RenameMaintenanceWindowRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateMaintenanceWindowSchedule: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MaintenanceScheduleInput"];
+                "text/json": components["schemas"]["MaintenanceScheduleInput"];
+                "application/*+json": components["schemas"]["MaintenanceScheduleInput"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateMaintenanceWindowPolicy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMaintenanceWindowPolicyRequest"];
+                "text/json": components["schemas"]["UpdateMaintenanceWindowPolicyRequest"];
+                "application/*+json": components["schemas"]["UpdateMaintenanceWindowPolicyRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    SetMaintenanceWindowMonitors: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetMaintenanceWindowMonitorsRequest"];
+                "text/json": components["schemas"]["SetMaintenanceWindowMonitorsRequest"];
+                "application/*+json": components["schemas"]["SetMaintenanceWindowMonitorsRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetMonitor: {
         parameters: {
             query?: never;
@@ -853,7 +2164,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Monitor"];
+                    "application/json": components["schemas"]["MonitorResponse"];
                 };
             };
             default: {
@@ -866,7 +2177,7 @@ export interface operations {
             };
         };
     };
-    GetAllMonitors: {
+    GetMonitorStatuses: {
         parameters: {
             query?: never;
             header?: never;
@@ -883,7 +2194,44 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Monitor"][];
+                    "application/json": components["schemas"]["MonitorStatusSummaryResponse"][];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetAllMonitors: {
+        parameters: {
+            query?: {
+                page?: number;
+                pageSize?: number;
+                sortBy?: components["schemas"]["MonitorSortBy"];
+                sortOrder?: components["schemas"]["SortOrder"];
+                type?: string;
+                search?: string;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResultOfMonitorListItemResponse"];
                 };
             };
             default: {
@@ -920,6 +2268,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": string;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    PauseMonitor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ResumeMonitor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             default: {
@@ -996,6 +2406,70 @@ export interface operations {
             };
         };
     };
+    AssignMaintenanceWindowToMonitor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+                windowId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UnassignMaintenanceWindowFromMonitor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+                windowId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     SendTestNotification: {
         parameters: {
             query?: never;
@@ -1027,6 +2501,195 @@ export interface operations {
             };
         };
     };
+    GetMonitorStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonitorStatusResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMonitorUptime: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonitorUptimeResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMonitorResponseTimes: {
+        parameters: {
+            query?: {
+                range?: components["schemas"]["ResponseTimeRange"];
+            };
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MonitorResponseTimesResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetInvitationPreview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationPreview"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    AcceptInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                token: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetInvitations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["PendingInvitationRow"][];
+                    "application/json": components["schemas"]["PendingInvitationRow"][];
+                    "text/json": components["schemas"]["PendingInvitationRow"][];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     InviteMember: {
         parameters: {
             query?: never;
@@ -1054,6 +2717,245 @@ export interface operations {
                     "application/json": components["schemas"]["InvitationResponse"];
                     "text/json": components["schemas"]["InvitationResponse"];
                 };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["OrganizationDetails"];
+                    "application/json": components["schemas"]["OrganizationDetails"];
+                    "text/json": components["schemas"]["OrganizationDetails"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateOrganizationRequest"];
+                "text/json": components["schemas"]["UpdateOrganizationRequest"];
+                "application/*+json": components["schemas"]["UpdateOrganizationRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteOrganization: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteOrganizationRequest"];
+                "text/json": components["schemas"]["DeleteOrganizationRequest"];
+                "application/*+json": components["schemas"]["DeleteOrganizationRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetMembers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["MemberRow"][];
+                    "application/json": components["schemas"]["MemberRow"][];
+                    "text/json": components["schemas"]["MemberRow"][];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    ChangeMemberRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeMemberRoleRequest"];
+                "text/json": components["schemas"]["ChangeMemberRoleRequest"];
+                "application/*+json": components["schemas"]["ChangeMemberRoleRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveMember: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RevokeInvitation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                invitationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             default: {
                 headers: {

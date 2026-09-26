@@ -6,7 +6,7 @@ import { api } from "@/lib/api/client";
 import { authKeys } from "./keys";
 import { organizationKeys } from "@/modules/organizations/hooks/keys";
 
-export function useLogout() {
+export function useLogout(redirectTo = "/sign-in") {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -21,7 +21,7 @@ export function useLogout() {
     onSuccess: async () => {
       await queryClient.removeQueries({ queryKey: authKeys.all });
       await queryClient.removeQueries({ queryKey: organizationKeys.all });
-      router.push("/sign-in");
+      router.push(redirectTo);
       router.refresh();
     },
   });

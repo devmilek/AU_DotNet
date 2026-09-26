@@ -21,7 +21,7 @@ const defaultValues: SignInValues = {
   password: "",
 };
 
-export function SignInForm() {
+export function SignInForm({ returnUrl }: { returnUrl?: string | null }) {
   const [formError, setFormError] = useState<string | null>(null);
   const router = useRouter();
   const form = useForm({
@@ -45,7 +45,7 @@ export function SignInForm() {
       });
 
       if (response.ok) {
-        router.push("/");
+        router.push(returnUrl ?? "/");
         return;
       }
 

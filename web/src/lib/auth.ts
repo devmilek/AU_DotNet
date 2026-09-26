@@ -31,3 +31,11 @@ export const getOrganizations = cache(async () => {
 
   return data;
 });
+
+/** Organizacja z URL (po slugu), do której użytkownik należy — inaczej przekierowanie do wyboru organizacji. */
+export async function requireOrganization(slug: string) {
+  const organizations = await getOrganizations();
+  const organization = organizations.find((item) => item.slug === slug);
+  if (!organization) redirect("/organizations");
+  return organization;
+}
