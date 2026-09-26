@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AU.Domain\AU.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentValidation" Version="12.1.1" />
+      <PackageReference Include="WolverineFx" Version="6.40.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Channels\Commands\DeactivateNotificationChannel\" />
+      <Folder Include="Channels\Queries\GetMonitorChannels\" />
+    </ItemGroup>
+
+</Project>
