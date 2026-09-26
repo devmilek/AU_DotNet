@@ -24,6 +24,6 @@ public class CheckMonitorHandler
         await unitOfWork.SaveChangesAsync();
         
         var isUp = result.Status == CheckStatus.UP;
-        await bus.PublishAsync(new MonitorCheckCompletedEvent(monitor.Id, isUp, result.CheckedAt));
+        await bus.PublishAsync(new MonitorCheckCompletedEvent(monitor.Id, isUp, result.CheckedAt, result.ErrorMessage));
     }
 }

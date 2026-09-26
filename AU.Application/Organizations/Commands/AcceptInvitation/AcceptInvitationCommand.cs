@@ -17,6 +17,7 @@ public sealed class AcceptInvitationHandler
         ICurrentUser currentUser,
         TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
+        IFileStorage storage,
         CancellationToken cancellationToken)
     {
         var now = timeProvider.GetUtcNow();
@@ -29,7 +30,8 @@ public sealed class AcceptInvitationHandler
 
         var existing = organization.FindMember(currentUser.UserId);
         if (existing is not null)
-            return new OrganizationResponse(organization.Id, organization.Name, organization.Slug, existing.Role);
+            return new OrganizationResponse(organization.Id, organization.Name, organization.Slug, existing.Role,
+                storage.GetPublicUrlOrDefault(organization.LogoKey));
 
         if (!invitation.IsPending(now))
             throw new ConflictException("This invitation has expired or is no longer valid. Ask for a new one.");
@@ -43,6 +45,7 @@ public sealed class AcceptInvitationHandler
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new OrganizationResponse(organization.Id, organization.Name, organization.Slug, member.Role);
+        return new OrganizationResponse(organization.Id, organization.Name, organization.Slug, member.Role,
+            storage.GetPublicUrlOrDefault(organization.LogoKey));
     }
 }

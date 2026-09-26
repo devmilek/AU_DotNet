@@ -50,18 +50,22 @@ export function ChannelsList({
 
   if (channels.data?.length === 0) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <BellIcon />
-          </EmptyMedia>
-          <EmptyTitle>No notification channels yet</EmptyTitle>
-          <EmptyDescription>
-            Pick a channel type below to start getting alerts when your
-            monitors go down.
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <Frame>
+        <FramePanel>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <BellIcon />
+              </EmptyMedia>
+              <EmptyTitle>No notification channels yet</EmptyTitle>
+              <EmptyDescription>
+                Pick a channel type below to start getting alerts when your
+                monitors go down.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </FramePanel>
+      </Frame>
     );
   }
 

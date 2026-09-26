@@ -12,6 +12,7 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
         builder.Property(o => o.Name).HasMaxLength(100).IsRequired();
         builder.Property(o => o.Slug).HasMaxLength(60).IsRequired();
         builder.HasIndex(o => o.Slug).IsUnique();
+        builder.Property(o => o.LogoKey).HasMaxLength(Organization.MaxLogoKeyLength);
 
         builder.HasMany(o => o.Members)
             .WithOne(m => m.Organization)

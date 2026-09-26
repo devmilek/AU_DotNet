@@ -17,6 +17,7 @@ using AU.Application.Abstractions;
 using AU.Application.Channels;
 using AU.Application.Checks;
 using AU.Application.Checks.Statistics;
+using AU.Application.Incidents;
 using AU.Application.MaintenanceWindows;
 using AU.Application.Monitors;
 using AU.Application.Notifications;
@@ -29,6 +30,7 @@ using AU.Infrastructure.Persistence.Readers;
 using AU.Infrastructure.Persistence.Repositories;
 using AU.Infrastructure.Scheduling;
 using AU.Infrastructure.Security;
+using AU.Infrastructure.Storage;
 
 namespace AU.Infrastructure;
 
@@ -100,6 +102,7 @@ public static class DependencyInjection
 
         services.AddScoped<IMonitorStatisticsReader, MonitorStatisticsReader>();
         services.AddScoped<IPhaseTimingsReader, PhaseTimingsReader>();
+        services.AddScoped<IIncidentReader, IncidentReader>();
         services.TryAddSingleton(TimeProvider.System);
 
         return services;
@@ -139,6 +142,14 @@ public static class DependencyInjection
         return services;
     }
     
+    public static IServiceCollection AddFileStorage(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.Configure<LocalFileStorageOptions>(configuration.GetSection(LocalFileStorageOptions.SectionName));
+        services.AddSingleton<IFileStorage, LocalFileStorage>();
+
+        return services;
+    }
+
     public static IServiceCollection AddAppOpenTelemetry(this IServiceCollection services, string serviceName)
     {
         services

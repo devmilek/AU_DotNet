@@ -1,4 +1,4 @@
-namespace CCS.AppHost;
+namespace AU.AppHost;
 
 static class AppHostExtensions
 {

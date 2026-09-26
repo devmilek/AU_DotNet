@@ -41,7 +41,10 @@ export function MaintenanceWindowsView({
   };
 
   return (
-    <Tabs value={view} onValueChange={(value) => handleViewChange(value as View)}>
+    <Tabs
+      value={view}
+      onValueChange={(value) => handleViewChange(value as View)}
+    >
       <TabsList className="mb-2">
         <TabsTab value="list">
           <ListIcon />

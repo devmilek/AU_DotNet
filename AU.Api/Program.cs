@@ -8,6 +8,7 @@ using Scalar.AspNetCore;
 using AU.Api.Authentication;
 using AU.Api.Exceptions;
 using AU.Api.RateLimiting;
+using AU.Api.Storage;
 using AU.Application.Channels.Commands.SendTestNotification;
 using AU.Application.Monitors.Commands.CreateMonitor;
 using AU.Application.Notifications.Events.EmailConfirmationRequested;
@@ -63,6 +64,7 @@ builder.AddPersistence();
 builder.AddAppHangfire();
 builder.Services.AddRepositories();
 builder.Services.AddNotification(builder.Configuration);
+builder.Services.AddFileStorage(builder.Configuration);
 
 var app = builder.Build();
 
@@ -82,6 +84,8 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseLocalFileStorage();
 
 app.UseRouting();
 app.UseRateLimiter(); 

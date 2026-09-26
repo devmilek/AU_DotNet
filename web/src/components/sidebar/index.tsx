@@ -5,6 +5,7 @@ import {
   BellIcon,
   CalendarClockIcon,
   SettingsIcon,
+  SirenIcon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -29,6 +30,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   const navMain = [
     { title: "Monitors", url: `/${slug}/monitors`, icon: Activity },
+    { title: "Incidents", url: `/${slug}/incidents`, icon: SirenIcon },
     {
       title: "Notifications",
       url: `/${slug}/notifications`,

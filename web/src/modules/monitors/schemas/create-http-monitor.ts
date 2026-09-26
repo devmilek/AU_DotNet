@@ -56,101 +56,114 @@ export function parseStatusCodes(input: string): StatusCodeRange[] | null {
   return ranges;
 }
 
-export const createHttpMonitorSchema = z
-  .object({
-    name: z
-      .string()
-      .trim()
-      .min(1, "Name is required.")
-      .min(3, "Name must be at least 3 characters.")
-      .max(100, "Name must be at most 100 characters."),
-    target: z
-      .string()
-      .trim()
-      .min(1, "URL is required.")
-      .max(2048, "URL must be at most 2048 characters.")
-      .refine((value) => {
-        try {
-          const url = new URL(value);
-          return url.protocol === "http:" || url.protocol === "https:";
-        } catch {
-          return false;
+export type StoredSecrets = { password: boolean; token: boolean };
+
+const noStoredSecrets: StoredSecrets = { password: false, token: false };
+
+export const httpMonitorSchema = (
+  storedSecrets: StoredSecrets = noStoredSecrets,
+) =>
+  z
+    .object({
+      name: z
+        .string()
+        .trim()
+        .min(1, "Name is required.")
+        .min(3, "Name must be at least 3 characters.")
+        .max(100, "Name must be at most 100 characters."),
+      target: z
+        .string()
+        .trim()
+        .min(1, "URL is required.")
+        .max(2048, "URL must be at most 2048 characters.")
+        .refine((value) => {
+          try {
+            const url = new URL(value);
+            return url.protocol === "http:" || url.protocol === "https:";
+          } catch {
+            return false;
+          }
+        }, "Enter a full URL starting with http:// or https://."),
+      intervalSeconds: z.number().int().min(5),
+      timeoutMs: z
+        .number({ error: "Timeout is required." })
+        .int()
+        .min(100, "Timeout must be at least 100 ms."),
+      alertThreshold: z
+        .number({ error: "Required." })
+        .int()
+        .min(1, "Must be at least 1.")
+        .max(100, "Must be at most 100."),
+      recoveryThreshold: z
+        .number({ error: "Required." })
+        .int()
+        .min(1, "Must be at least 1.")
+        .max(100, "Must be at most 100."),
+      method: z.enum(httpMethods),
+      followRedirects: z.boolean(),
+      acceptedStatusCodes: z
+        .string()
+        .refine(
+          (value) => parseStatusCodes(value) !== null,
+          "Use codes or ranges between 100 and 599, e.g. 200-299, 301.",
+        )
+        .refine(
+          (value) => (parseStatusCodes(value)?.length ?? 0) <= 20,
+          "At most 20 ranges.",
+        ),
+      authType: z.enum(httpAuthTypes),
+      username: z.string(),
+      password: z.string(),
+      token: z.string(),
+    })
+    .superRefine((values, ctx) => {
+      // timeout musi się zmieścić w intervalu, inaczej checki się nakładają
+      if (values.timeoutMs >= values.intervalSeconds * 1000) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["timeoutMs"],
+          message: "Timeout must be shorter than the check interval.",
+        });
+      }
+
+      if (values.authType === "Basic") {
+        if (!values.username.trim()) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["username"],
+            message: "Username is required.",
+          });
+        } else if (values.username.includes(":")) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["username"],
+            message: "Username cannot contain a colon.",
+          });
         }
-      }, "Enter a full URL starting with http:// or https://."),
-    intervalSeconds: z.number().int().min(5),
-    timeoutMs: z
-      .number({ error: "Timeout is required." })
-      .int()
-      .min(100, "Timeout must be at least 100 ms."),
-    alertThreshold: z
-      .number({ error: "Required." })
-      .int()
-      .min(1, "Must be at least 1.")
-      .max(100, "Must be at most 100."),
-    recoveryThreshold: z
-      .number({ error: "Required." })
-      .int()
-      .min(1, "Must be at least 1.")
-      .max(100, "Must be at most 100."),
-    method: z.enum(httpMethods),
-    followRedirects: z.boolean(),
-    acceptedStatusCodes: z
-      .string()
-      .refine(
-        (value) => parseStatusCodes(value) !== null,
-        "Use codes or ranges between 100 and 599, e.g. 200-299, 301.",
-      )
-      .refine(
-        (value) => (parseStatusCodes(value)?.length ?? 0) <= 20,
-        "At most 20 ranges.",
-      ),
-    authType: z.enum(httpAuthTypes),
-    username: z.string(),
-    password: z.string(),
-    token: z.string(),
-  })
-  .superRefine((values, ctx) => {
-    // timeout musi się zmieścić w intervalu, inaczej checki się nakładają
-    if (values.timeoutMs >= values.intervalSeconds * 1000) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["timeoutMs"],
-        message: "Timeout must be shorter than the check interval.",
-      });
-    }
 
-    if (values.authType === "Basic") {
-      if (!values.username.trim()) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["username"],
-          message: "Username is required.",
-        });
-      } else if (values.username.includes(":")) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["username"],
-          message: "Username cannot contain a colon.",
-        });
+        if (!values.password && !storedSecrets.password) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["password"],
+            message: "Password is required.",
+          });
+        }
       }
 
-      if (!values.password) {
+      if (
+        values.authType === "Bearer" &&
+        !values.token.trim() &&
+        !storedSecrets.token
+      ) {
         ctx.addIssue({
           code: "custom",
-          path: ["password"],
-          message: "Password is required.",
+          path: ["token"],
+          message: "Token is required.",
         });
       }
-    }
+    });
 
-    if (values.authType === "Bearer" && !values.token.trim()) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["token"],
-        message: "Token is required.",
-      });
-    }
-  });
+export const createHttpMonitorSchema = httpMonitorSchema();
 
 export type CreateHttpMonitorValues = z.input<typeof createHttpMonitorSchema>;
 
@@ -195,6 +208,69 @@ export function toCreateMonitorRequest(
               password: values.authType === "Basic" ? values.password : null,
               token: values.authType === "Bearer" ? values.token.trim() : null,
             },
+    },
+  };
+}
+
+type Monitor = components["schemas"]["MonitorResponse"];
+
+export function formatStatusCodes(ranges: StatusCodeRange[]): string {
+  return ranges
+    .map((range) =>
+      range.from === range.to ? `${range.from}` : `${range.from}-${range.to}`,
+    )
+    .join(", ");
+}
+
+export function storedSecretsOf(monitor: Monitor): StoredSecrets {
+  return {
+    password: monitor.http?.auth.hasPassword ?? false,
+    token: monitor.http?.auth.hasToken ?? false,
+  };
+}
+
+export function valuesFromMonitor(monitor: Monitor): CreateHttpMonitorValues {
+  const http = monitor.http;
+
+  return {
+    name: monitor.name,
+    target: monitor.target,
+    intervalSeconds: monitor.intervalSeconds,
+    timeoutMs: monitor.timeoutMs,
+    alertThreshold: monitor.alertThreshold,
+    recoveryThreshold: monitor.recoveryThreshold,
+    method: http?.method ?? createHttpMonitorDefaults.method,
+    followRedirects:
+      http?.followRedirects ?? createHttpMonitorDefaults.followRedirects,
+    acceptedStatusCodes: http
+      ? formatStatusCodes(http.acceptedStatusCodes)
+      : createHttpMonitorDefaults.acceptedStatusCodes,
+    authType: http?.auth.type ?? "None",
+    username: http?.auth.username ?? "",
+    password: "",
+    token: "",
+  };
+}
+
+export function toUpdateMonitorRequest(
+  values: CreateHttpMonitorValues,
+): components["schemas"]["UpdateMonitorRequest"] {
+  const request = toCreateMonitorRequest(values);
+
+  return {
+    name: request.name,
+    target: request.target,
+    intervalSeconds: request.intervalSeconds,
+    timeoutMs: request.timeoutMs,
+    alertThreshold: request.alertThreshold,
+    recoveryThreshold: request.recoveryThreshold,
+    http: request.http && {
+      ...request.http,
+      auth: request.http.auth && {
+        ...request.http.auth,
+        password: request.http.auth.password || null,
+        token: request.http.auth.token || null,
+      },
     },
   };
 }

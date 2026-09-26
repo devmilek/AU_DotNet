@@ -11,6 +11,7 @@ using AU.Application.MaintenanceWindows.Commands.UnassignMaintenanceWindowFromMo
 using AU.Application.Monitors.Commands.CreateMonitor;
 using AU.Application.Monitors.Commands.PauseMonitor;
 using AU.Application.Monitors.Commands.ResumeMonitor;
+using AU.Application.Monitors.Commands.UpdateMonitor;
 using AU.Application.Monitors.Queries.GetAllMonitors;
 using AU.Application.Monitors.Queries.GetMonitor;
 using AU.Application.Monitors.Queries.GetMonitorStatuses;
@@ -93,6 +94,26 @@ public class MonitorsController(IMessageBus bus) : ControllerBase
         var command = new CreateMonitorCommand(orgId, request.Name, request.Type, request.Target, request.IntervalSeconds, request.TimeoutMs, request.AlertThreshold, request.RecoveryThreshold, request.Http);
         var result = await bus.InvokeAsync<Guid>(command);
         return CreatedAtAction(nameof(Get), new { orgId, id = result }, result);
+    }
+
+    [HttpPut("{monitorId:guid}", Name = "UpdateMonitor")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> Update(
+        Guid orgId, Guid monitorId, UpdateMonitorRequest request, CancellationToken cancellationToken)
+    {
+        var command = new UpdateMonitorCommand(
+            orgId,
+            monitorId,
+            request.Name,
+            request.Target,
+            request.IntervalSeconds,
+            request.TimeoutMs,
+            request.AlertThreshold,
+            request.RecoveryThreshold,
+            request.Http);
+        await bus.InvokeAsync(command, cancellationToken);
+        return NoContent();
     }
 
     [HttpPost("{monitorId:guid}/pause", Name = "PauseMonitor")]

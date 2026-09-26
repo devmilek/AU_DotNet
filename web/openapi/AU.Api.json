@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:5299/"
+      "url": "https://localhost:7143/"
     }
   ],
   "paths": {
@@ -655,6 +655,277 @@
           },
           "required": true
         },
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/{orgId}/incidents": {
+      "get": {
+        "tags": [
+          "Incidents"
+        ],
+        "operationId": "GetIncidents",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "default": "All",
+              "$ref": "#/components/schemas/IncidentStatusFilter"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResultOfIncidentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/{orgId}/incidents/{id}": {
+      "get": {
+        "tags": [
+          "Incidents"
+        ],
+        "operationId": "GetIncident",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IncidentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Incidents"
+        ],
+        "operationId": "UpdateIncident",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateIncidentRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateIncidentRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateIncidentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Incidents"
+        ],
+        "operationId": "DeleteIncident",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content",
+            "content": {
+              "application/json": { }
+            }
+          }
+        }
+      }
+    },
+    "/api/{orgId}/incidents/{id}/acknowledge": {
+      "post": {
+        "tags": [
+          "Incidents"
+        ],
+        "operationId": "AcknowledgeIncident",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "description": "",
@@ -2460,6 +2731,65 @@
         }
       }
     },
+    "/api/organizations/slug-availability": {
+      "get": {
+        "tags": [
+          "Organizations"
+        ],
+        "operationId": "GetSlugAvailability",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlugAvailability"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlugAvailability"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SlugAvailability"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/organizations/{orgId}/invitations": {
       "post": {
         "tags": [
@@ -2767,6 +3097,124 @@
           },
           "required": true
         },
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/api/organizations/{orgId}/logo": {
+      "put": {
+        "tags": [
+          "Organizations"
+        ],
+        "operationId": "UploadOrganizationLogo",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "default": {
+            "description": "",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationLogoResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationLogoResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganizationLogoResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Organizations"
+        ],
+        "operationId": "RemoveOrganizationLogo",
+        "parameters": [
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "default": {
             "description": "",
@@ -3272,6 +3720,12 @@
         "properties": {
           "name": {
             "type": "string"
+          },
+          "slug": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -3489,6 +3943,139 @@
             ]
           }
         }
+      },
+      "IFormFile": {
+        "type": "string",
+        "format": "binary"
+      },
+      "IncidentAcknowledgement": {
+        "required": [
+          "at",
+          "userId",
+          "userName"
+        ],
+        "type": "object",
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "userId": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "IncidentMonitor": {
+        "required": [
+          "id",
+          "name",
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          }
+        }
+      },
+      "IncidentResponse": {
+        "required": [
+          "id",
+          "name",
+          "hasCustomName",
+          "cause",
+          "monitor",
+          "status",
+          "startedAt",
+          "resolvedAt",
+          "failedChecksCount",
+          "startedInMaintenance",
+          "acknowledgement"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "hasCustomName": {
+            "type": "boolean"
+          },
+          "cause": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "monitor": {
+            "$ref": "#/components/schemas/IncidentMonitor"
+          },
+          "status": {
+            "$ref": "#/components/schemas/IncidentStatus"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "failedChecksCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startedInMaintenance": {
+            "type": "boolean"
+          },
+          "acknowledgement": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/IncidentAcknowledgement"
+              }
+            ]
+          }
+        }
+      },
+      "IncidentStatus": {
+        "enum": [
+          "Ongoing",
+          "Resolved",
+          "Acknowledged"
+        ]
+      },
+      "IncidentStatusFilter": {
+        "enum": [
+          "All",
+          "Ongoing",
+          "Resolved"
+        ]
       },
       "InvitationPreview": {
         "required": [
@@ -4304,7 +4891,8 @@
           "slug",
           "createdAt",
           "memberCount",
-          "currentUserRole"
+          "currentUserRole",
+          "logoUrl"
         ],
         "type": "object",
         "properties": {
@@ -4328,6 +4916,23 @@
           },
           "currentUserRole": {
             "$ref": "#/components/schemas/OrganizationRole"
+          },
+          "logoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "OrganizationLogoResponse": {
+        "required": [
+          "logoUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "logoUrl": {
+            "type": "string"
           }
         }
       },
@@ -4336,7 +4941,8 @@
           "id",
           "name",
           "slug",
-          "role"
+          "role",
+          "logoUrl"
         ],
         "type": "object",
         "properties": {
@@ -4352,11 +4958,50 @@
           },
           "role": {
             "$ref": "#/components/schemas/OrganizationRole"
+          },
+          "logoUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
       "OrganizationRole": {
         "type": "integer"
+      },
+      "PagedResultOfIncidentResponse": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "totalCount"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IncidentResponse"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
       },
       "PagedResultOfMonitorListItemResponse": {
         "required": [
@@ -4712,6 +5357,21 @@
           }
         }
       },
+      "SlugAvailability": {
+        "required": [
+          "slug",
+          "available"
+        ],
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      },
       "SortOrder": {
         "enum": [
           "Asc",
@@ -4732,6 +5392,27 @@
           "to": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "UpdateIncidentRequest": {
+        "required": [
+          "name",
+          "cause"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "cause": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4879,6 +5560,9 @@
     },
     {
       "name": "Channels"
+    },
+    {
+      "name": "Incidents"
     },
     {
       "name": "MaintenanceWindows"

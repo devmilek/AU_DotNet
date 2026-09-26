@@ -21,3 +21,6 @@ TestResults/
 *.pem
 *.key
 web/.certs/
+
+# Local file storage
+AU.Api/storage/

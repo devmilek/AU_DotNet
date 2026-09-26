@@ -9,4 +9,6 @@ export const organizationKeys = {
     [...organizationKeys.detail(organizationId), "invitations"] as const,
   invitation: (token: string) =>
     [...organizationKeys.all, "invitation", token] as const,
+  slugAvailability: (slug: string) =>
+    [...organizationKeys.all, "slug-availability", slug] as const,
 };

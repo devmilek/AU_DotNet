@@ -8,12 +8,15 @@ using AU.Application.Organizations.Commands.CreateOrganization;
 using AU.Application.Organizations.Commands.DeleteOrganization;
 using AU.Application.Organizations.Commands.InviteMemberCommand;
 using AU.Application.Organizations.Commands.RemoveMember;
+using AU.Application.Organizations.Commands.RemoveOrganizationLogo;
 using AU.Application.Organizations.Commands.RevokeInvitation;
 using AU.Application.Organizations.Commands.UpdateOrganization;
+using AU.Application.Organizations.Commands.UploadOrganizationLogo;
 using AU.Application.Organizations.Queries.GetInvitations;
 using AU.Application.Organizations.Queries.GetMembers;
 using AU.Application.Organizations.Queries.GetMyOrganizations;
 using AU.Application.Organizations.Queries.GetOrganization;
+using AU.Application.Organizations.Queries.GetSlugAvailability;
 using Wolverine;
 
 namespace AU.Api.Controllers;
@@ -36,6 +39,13 @@ public class OrganizationsController(IMessageBus bus) : ControllerBase
     {
         var result = await bus.InvokeAsync<MyOrganizationsResponse>(new GetMyOrganizationsQuery());
         return Ok(result.Organizations);
+    }
+
+    [HttpGet("slug-availability", Name = "GetSlugAvailability")]
+    [ProducesResponseType<SlugAvailability>(StatusCodes.Status200OK)]
+    public async Task<ActionResult<SlugAvailability>> GetSlugAvailability([FromQuery] string slug, CancellationToken ct)
+    {
+        return Ok(await bus.InvokeAsync<SlugAvailability>(new GetSlugAvailabilityQuery(slug), ct));
     }
 
     [HttpPost("{orgId:guid}/invitations", Name = "InviteMember")]
@@ -63,6 +73,29 @@ public class OrganizationsController(IMessageBus bus) : ControllerBase
     public async Task<IActionResult> Update(Guid orgId, UpdateOrganizationRequest request, CancellationToken ct)
     {
         await bus.InvokeAsync(new UpdateOrganizationCommand(orgId, request.Name), ct);
+        return NoContent();
+    }
+
+    [HttpPut("{orgId:guid}/logo", Name = "UploadOrganizationLogo")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType<OrganizationLogoResponse>(StatusCodes.Status200OK)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    [RequestSizeLimit(UploadOrganizationLogoValidator.MaxSizeBytes + 64 * 1024)]
+    public async Task<ActionResult<OrganizationLogoResponse>> UploadLogo(
+        Guid orgId, IFormFile file, CancellationToken ct)
+    {
+        await using var content = file.OpenReadStream();
+        var result = await bus.InvokeAsync<OrganizationLogoResponse>(
+            new UploadOrganizationLogoCommand(orgId, content), ct);
+        return Ok(result);
+    }
+
+    [HttpDelete("{orgId:guid}/logo", Name = "RemoveOrganizationLogo")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [Authorize(Policy = OrgPolicies.Admin)]
+    public async Task<IActionResult> RemoveLogo(Guid orgId, CancellationToken ct)
+    {
+        await bus.InvokeAsync(new RemoveOrganizationLogoCommand(orgId), ct);
         return NoContent();
     }
 

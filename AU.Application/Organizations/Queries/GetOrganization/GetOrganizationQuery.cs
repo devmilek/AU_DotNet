@@ -12,7 +12,8 @@ public sealed record OrganizationDetails(
     string Slug,
     DateTimeOffset CreatedAt,
     int MemberCount,
-    OrganizationRole CurrentUserRole);
+    OrganizationRole CurrentUserRole,
+    string? LogoUrl);
 
 public sealed class GetOrganizationHandler
 {
@@ -20,6 +21,7 @@ public sealed class GetOrganizationHandler
         GetOrganizationQuery query,
         IOrganizationRepository organizations,
         ICurrentUser currentUser,
+        IFileStorage storage,
         CancellationToken cancellationToken)
     {
         var organization = await organizations.GetWithMembersAsync(query.OrganizationId, cancellationToken)
@@ -34,6 +36,7 @@ public sealed class GetOrganizationHandler
             organization.Slug,
             organization.CreatedAt,
             organization.Members.Count,
-            member.Role);
+            member.Role,
+            storage.GetPublicUrlOrDefault(organization.LogoKey));
     }
 }

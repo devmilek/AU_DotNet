@@ -64,7 +64,7 @@ public sealed class CreateMonitorValidator: AbstractValidator<CreateMonitorComma
 
 public sealed class HttpCheckSettingsValidator : AbstractValidator<HttpCheckSettings>
 {
-    public HttpCheckSettingsValidator()
+    public HttpCheckSettingsValidator(bool secretsRequired = true)
     {
         RuleFor(x => x.Method)
             .IsInEnum();
@@ -86,14 +86,14 @@ public sealed class HttpCheckSettingsValidator : AbstractValidator<HttpCheckSett
             });
 
         RuleFor(x => x.Auth!)
-            .SetValidator(new HttpAuthSettingsValidator())
+            .SetValidator(new HttpAuthSettingsValidator(secretsRequired))
             .When(x => x.Auth is not null);
     }
 }
 
 public sealed class HttpAuthSettingsValidator : AbstractValidator<HttpAuthSettings>
 {
-    public HttpAuthSettingsValidator()
+    public HttpAuthSettingsValidator(bool secretsRequired = true)
     {
         RuleFor(x => x.Type)
             .IsInEnum();
@@ -109,6 +109,9 @@ public sealed class HttpAuthSettingsValidator : AbstractValidator<HttpAuthSettin
 
             RuleFor(x => x.Password)
                 .NotEmpty()
+                .When(_ => secretsRequired);
+
+            RuleFor(x => x.Password)
                 .MaximumLength(1024);
         });
 
@@ -116,6 +119,9 @@ public sealed class HttpAuthSettingsValidator : AbstractValidator<HttpAuthSettin
         {
             RuleFor(x => x.Token)
                 .NotEmpty()
+                .When(_ => secretsRequired);
+
+            RuleFor(x => x.Token)
                 .MaximumLength(4096);
         });
     }

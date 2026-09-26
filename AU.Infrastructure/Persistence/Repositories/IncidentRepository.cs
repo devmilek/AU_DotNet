@@ -22,8 +22,21 @@ public sealed class IncidentRepository(AppDbContext db) : IIncidentRepository
             .FirstOrDefaultAsync();
     }
 
+    public async Task<Incident?> GetAsync(Guid organizationId, Guid incidentId, CancellationToken ct = default)
+    {
+        return await db.Incidents
+            .Where(i => i.Id == incidentId
+                        && db.Monitors.Any(m => m.Id == i.MonitorId && m.OrganizationId == organizationId))
+            .FirstOrDefaultAsync(ct);
+    }
+
     public void Add(Incident incident)
     {
         db.Incidents.Add(incident);
+    }
+
+    public void Remove(Incident incident)
+    {
+        db.Incidents.Remove(incident);
     }
 }

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using AU.Domain.Entities;
+using AU.Infrastructure.Identity;
 using Monitor = AU.Domain.Entities.Monitor;
 using Incident = AU.Domain.Entities.Incident;
 
@@ -17,6 +18,8 @@ public sealed class IncidentConfiguration : IEntityTypeConfiguration<Incident>
         builder.HasIndex(i => new { i.MonitorId, i.Status });
 
         builder.Property(i => i.Status).HasConversion<string>().IsRequired();
+        builder.Property(i => i.Name).HasMaxLength(Incident.MaxNameLength);
+        builder.Property(i => i.Cause).HasMaxLength(Incident.MaxCauseLength);
         builder.Property(i => i.StartedAt).IsRequired();
         builder.Property(i => i.FailedChecksCount).IsRequired();
 
@@ -26,6 +29,11 @@ public sealed class IncidentConfiguration : IEntityTypeConfiguration<Incident>
 
         builder.Property(i => i.CreatedAt).IsRequired();
         builder.Property(i => i.UpdatedAt).IsRequired();
+
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(i => i.AcknowledgedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasOne<Monitor>()
             .WithMany()

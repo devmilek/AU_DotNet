@@ -80,24 +80,28 @@ export function MaintenanceWindowsList({
 
   if (maintenanceWindows.data?.length === 0) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <CalendarClockIcon />
-          </EmptyMedia>
-          <EmptyTitle>No maintenance windows yet</EmptyTitle>
-          <EmptyDescription>
-            Schedule planned work so it doesn’t trigger alerts or count against
-            your uptime.
-          </EmptyDescription>
-        </EmptyHeader>
-        <EmptyContent>
-          <Button render={<Link href={`${listHref}/create`} />}>
-            <PlusIcon />
-            New maintenance window
-          </Button>
-        </EmptyContent>
-      </Empty>
+      <Frame>
+        <FramePanel>
+          <Empty>
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <CalendarClockIcon />
+              </EmptyMedia>
+              <EmptyTitle>No maintenance windows yet</EmptyTitle>
+              <EmptyDescription>
+                Schedule planned work so it doesn’t trigger alerts or count
+                against your uptime.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button render={<Link href={`${listHref}/create`} />}>
+                <PlusIcon />
+                New maintenance window
+              </Button>
+            </EmptyContent>
+          </Empty>
+        </FramePanel>
+      </Frame>
     );
   }
 

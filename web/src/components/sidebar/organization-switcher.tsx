@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar";
 import { organizationRoleLabel } from "@/modules/organizations/lib/role-label";
 import { useOrganizations } from "@/modules/organizations/hooks/use-organizations";
+import { OrganizationAvatar } from "@/modules/organizations/ui/organization-avatar";
 import { ChevronsUpDown, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -63,9 +64,12 @@ export function OrganizationSwitcher() {
               />
             }
           >
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground">
-              {activeOrganization.name.slice(0, 1).toUpperCase()}
-            </div>
+            <OrganizationAvatar
+              name={activeOrganization.name}
+              logoUrl={activeOrganization.logoUrl}
+              className="size-8 rounded-lg"
+              fallbackClassName="bg-sidebar-primary text-sm font-medium text-sidebar-primary-foreground"
+            />
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">
                 {activeOrganization.name}
@@ -94,9 +98,12 @@ export function OrganizationSwitcher() {
                     router.push(`/${organization.slug}/monitors`);
                   }}
                 >
-                  <div className="flex size-6 items-center justify-center rounded-md border text-xs font-medium">
-                    {organization.name.slice(0, 1).toUpperCase()}
-                  </div>
+                  <OrganizationAvatar
+                    name={organization.name}
+                    logoUrl={organization.logoUrl}
+                    className="size-6 rounded-md border"
+                    fallbackClassName="bg-transparent text-[0.625rem] font-medium"
+                  />
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate">{organization.name}</span>
                     <span className="truncate text-muted-foreground text-xs">

@@ -1,6 +1,7 @@
 "use client";
 
-import { BellRingIcon, PauseIcon, PlayIcon } from "lucide-react";
+import { BellRingIcon, PauseIcon, PencilIcon, PlayIcon } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Group, GroupSeparator } from "@/components/ui/group";
 import type { components } from "@/lib/api/schema";
@@ -16,9 +17,11 @@ type Monitor = components["schemas"]["MonitorResponse"];
 export function MonitorHeader({
   monitor,
   monitorRef,
+  editHref,
 }: {
   monitor: Monitor;
   monitorRef: MonitorRef;
+  editHref: string;
 }) {
   const setPaused = useSetMonitorPaused(monitorRef);
   const sendTestAlert = useSendTestAlert(monitorRef);
@@ -60,6 +63,11 @@ export function MonitorHeader({
         >
           {monitor.isActive ? <PauseIcon /> : <PlayIcon />}
           {monitor.isActive ? "Pause monitor" : "Resume monitor"}
+        </Button>
+        <GroupSeparator />
+        <Button variant="outline" render={<Link href={editHref} />}>
+          <PencilIcon />
+          Edit
         </Button>
       </Group>
     </div>

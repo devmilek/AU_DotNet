@@ -27,6 +27,7 @@ import {
   responseTimeRangeParam,
 } from "@/modules/monitors/lib/response-time-range";
 import { UptimeBarsTooltip } from "@/modules/monitors/ui/uptime-bars";
+import { MonitorIncidentsCard } from "@/modules/incidents/ui/monitor-incidents-card";
 import { MonitorHeader } from "./monitor-header";
 import { MonitorStatusCards } from "./monitor-status-cards";
 import { MonitorUptimeSummary } from "./monitor-uptime-summary";
@@ -35,9 +36,11 @@ import { ResponseTimeCard } from "./response-time-card";
 export function MonitorDetailsView({
   monitorRef,
   monitorsHref,
+  incidentsHref,
 }: {
   monitorRef: MonitorRef;
   monitorsHref: string;
+  incidentsHref: string;
 }) {
   const monitor = useMonitor(monitorRef);
   const status = useMonitorStatus(monitorRef, monitor.data?.intervalSeconds);
@@ -89,7 +92,11 @@ export function MonitorDetailsView({
       {backLink}
 
       {monitor.data ? (
-        <MonitorHeader monitor={monitor.data} monitorRef={monitorRef} />
+        <MonitorHeader
+          monitor={monitor.data}
+          monitorRef={monitorRef}
+          editHref={`${monitorsHref}/${monitorRef.monitorId}/edit`}
+        />
       ) : (
         <div className="space-y-2">
           <Skeleton className="h-8 w-64" />
@@ -116,6 +123,12 @@ export function MonitorDetailsView({
         monitorRef={monitorRef}
         range={range}
         onRangeChange={setRange}
+      />
+
+      <MonitorIncidentsCard
+        organizationId={monitorRef.organizationId}
+        monitorId={monitorRef.monitorId}
+        incidentsHref={incidentsHref}
       />
 
       <UptimeBarsTooltip />

@@ -1,4 +1,4 @@
-using CCS.AppHost;
+using AU.AppHost;
 
 var builder = DistributedApplication.CreateBuilder(args);
 

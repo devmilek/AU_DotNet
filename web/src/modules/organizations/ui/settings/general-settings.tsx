@@ -29,6 +29,7 @@ import {
 import { canManageMembers, ROLE } from "../../lib/roles";
 import { organizationNameSchema } from "../../schemas/organization-settings";
 import { DeleteOrganizationDialog } from "./delete-organization-dialog";
+import { OrganizationLogoCard } from "./organization-logo-card";
 
 type OrganizationDetails = components["schemas"]["OrganizationDetails"];
 
@@ -47,6 +48,7 @@ export function GeneralSettings({ organizationId }: { organizationId: string }) 
   if (!organization.data) {
     return (
       <div className="flex flex-col gap-6">
+        <Skeleton className="h-40 w-full rounded-xl" />
         <Skeleton className="h-56 w-full rounded-xl" />
         <Skeleton className="h-36 w-full rounded-xl" />
       </div>
@@ -55,6 +57,7 @@ export function GeneralSettings({ organizationId }: { organizationId: string }) 
 
   return (
     <div className="flex flex-col gap-6">
+      <OrganizationLogoCard organization={organization.data} />
       <OrganizationNameCard
         key={organization.data.name}
         organization={organization.data}

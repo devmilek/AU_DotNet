@@ -485,6 +485,54 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/{orgId}/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetIncidents"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/incidents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetIncident"];
+        put: operations["UpdateIncident"];
+        post?: never;
+        delete: operations["DeleteIncident"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/incidents/{id}/acknowledge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AcknowledgeIncident"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/{orgId}/maintenance-windows": {
         parameters: {
             query?: never;
@@ -703,6 +751,22 @@ export interface paths {
         get: operations["GetAllMonitors"];
         put?: never;
         post: operations["CreateMonitor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/{orgId}/monitors/{monitorId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UpdateMonitor"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -953,6 +1017,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/organizations/slug-availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetSlugAvailability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/organizations/{orgId}/invitations": {
         parameters: {
             query?: never;
@@ -980,6 +1060,22 @@ export interface paths {
         put: operations["UpdateOrganization"];
         post?: never;
         delete: operations["DeleteOrganization"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/organizations/{orgId}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["UploadOrganizationLogo"];
+        post?: never;
+        delete: operations["RemoveOrganizationLogo"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1102,6 +1198,19 @@ export interface components {
             recoveryThreshold: number;
             http?: null | components["schemas"]["HttpCheckSettings"];
         };
+        UpdateMonitorRequest: {
+            name: string;
+            target: string;
+            /** Format: int32 */
+            intervalSeconds: number;
+            /** Format: int32 */
+            timeoutMs: number;
+            /** Format: int32 */
+            alertThreshold: number;
+            /** Format: int32 */
+            recoveryThreshold: number;
+            http?: null | components["schemas"]["HttpCheckSettings"];
+        };
         CreateNotificationChannelRequest: {
             name: string;
             type: components["schemas"]["ChannelType"];
@@ -1110,6 +1219,7 @@ export interface components {
         };
         CreateOrganizationCommand: {
             name: string;
+            slug?: null | string;
         };
         DeleteOrganizationRequest: {
             confirmationName: string;
@@ -1161,6 +1271,42 @@ export interface components {
             acceptedStatusCodes: null | components["schemas"]["StatusCodeRangeSettings"][];
             auth: null | components["schemas"]["HttpAuthSettings"];
         };
+        /** Format: binary */
+        IFormFile: string;
+        IncidentAcknowledgement: {
+            /** Format: date-time */
+            at: string;
+            /** Format: uuid */
+            userId: null | string;
+            userName: null | string;
+        };
+        IncidentMonitor: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            target: string;
+        };
+        IncidentResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            hasCustomName: boolean;
+            cause: null | string;
+            monitor: components["schemas"]["IncidentMonitor"];
+            status: components["schemas"]["IncidentStatus"];
+            /** Format: date-time */
+            startedAt: string;
+            /** Format: date-time */
+            resolvedAt: null | string;
+            /** Format: int32 */
+            failedChecksCount: number;
+            startedInMaintenance: boolean;
+            acknowledgement: null | components["schemas"]["IncidentAcknowledgement"];
+        };
+        /** @enum {unknown} */
+        IncidentStatus: "Ongoing" | "Resolved" | "Acknowledged";
+        /** @enum {unknown} */
+        IncidentStatusFilter: "All" | "Ongoing" | "Resolved";
         InvitationPreview: {
             organizationName: string;
             email: string;
@@ -1394,6 +1540,10 @@ export interface components {
             /** Format: int32 */
             memberCount: number;
             currentUserRole: components["schemas"]["OrganizationRole"];
+            logoUrl: null | string;
+        };
+        OrganizationLogoResponse: {
+            logoUrl: string;
         };
         OrganizationResponse: {
             /** Format: uuid */
@@ -1401,8 +1551,20 @@ export interface components {
             name: string;
             slug: string;
             role: components["schemas"]["OrganizationRole"];
+            logoUrl: null | string;
         };
         OrganizationRole: number;
+        PagedResultOfIncidentResponse: {
+            items: components["schemas"]["IncidentResponse"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            totalCount: number;
+            /** Format: int32 */
+            totalPages?: number;
+        };
         PagedResultOfMonitorListItemResponse: {
             items: components["schemas"]["MonitorListItemResponse"][];
             /** Format: int32 */
@@ -1493,6 +1655,10 @@ export interface components {
         SetMaintenanceWindowMonitorsRequest: {
             monitorIds: string[];
         };
+        SlugAvailability: {
+            slug: string;
+            available: boolean;
+        };
         /** @enum {unknown} */
         SortOrder: "Asc" | "Desc";
         StatusCodeRangeSettings: {
@@ -1500,6 +1666,10 @@ export interface components {
             from: number;
             /** Format: int32 */
             to: number;
+        };
+        UpdateIncidentRequest: {
+            name: null | string;
+            cause: null | string;
         };
         UpdateMaintenanceWindowPolicyRequest: {
             suppressNotifications: boolean;
@@ -1663,6 +1833,171 @@ export interface operations {
                 "application/*+json": components["schemas"]["SetChannelMonitorsRequest"];
             };
         };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetIncidents: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["IncidentStatusFilter"];
+                page?: number;
+                pageSize?: number;
+                monitorId?: string;
+            };
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedResultOfIncidentResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["IncidentResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UpdateIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateIncidentRequest"];
+                "text/json": components["schemas"]["UpdateIncidentRequest"];
+                "application/*+json": components["schemas"]["UpdateIncidentRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DeleteIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    AcknowledgeIncident: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description No Content */
             204: {
@@ -2294,6 +2629,43 @@ export interface operations {
             };
         };
     };
+    UpdateMonitor: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                monitorId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMonitorRequest"];
+                "text/json": components["schemas"]["UpdateMonitorRequest"];
+                "application/*+json": components["schemas"]["UpdateMonitorRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     PauseMonitor: {
         parameters: {
             query?: never;
@@ -2670,6 +3042,40 @@ export interface operations {
             };
         };
     };
+    GetSlugAvailability: {
+        parameters: {
+            query?: {
+                slug?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["SlugAvailability"];
+                    "application/json": components["schemas"]["SlugAvailability"];
+                    "text/json": components["schemas"]["SlugAvailability"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetInvitations: {
         parameters: {
             query?: never;
@@ -2830,6 +3236,76 @@ export interface operations {
                 "application/*+json": components["schemas"]["DeleteOrganizationRequest"];
             };
         };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UploadOrganizationLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file?: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["OrganizationLogoResponse"];
+                    "application/json": components["schemas"]["OrganizationLogoResponse"];
+                    "text/json": components["schemas"]["OrganizationLogoResponse"];
+                };
+            };
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    RemoveOrganizationLogo: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             /** @description No Content */
             204: {

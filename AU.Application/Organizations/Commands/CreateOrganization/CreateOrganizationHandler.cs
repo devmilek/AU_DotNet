@@ -13,7 +13,8 @@ public class CreateOrganizationHandler
         IUnitOfWork unitOfWork,
         ICurrentUser currentUser)
     {
-        var slug = await GenerateUniqueSlugAsync(command.Name, repository);
+        var slug = await ResolveUniqueSlugAsync(
+            command.Slug ?? OrganizationSlug.FromName(command.Name), repository);
 
         var organization = Organization.Create(command.Name, slug, currentUser.UserId);
 
@@ -24,18 +25,23 @@ public class CreateOrganizationHandler
             organization.Id,
             organization.Name,
             organization.Slug,
-            OrganizationRole.Owner);
+            OrganizationRole.Owner,
+            null);
     }
 
-    private async Task<string> GenerateUniqueSlugAsync(
-        string name,
+    private static async Task<string> ResolveUniqueSlugAsync(
+        string requestedSlug,
         IOrganizationRepository repository)
     {
-        var baseSlug = Slugger.Create(name);
+        if (OrganizationSlug.IsUsable(requestedSlug) && !await repository.SlugExistsAsync(requestedSlug))
+            return requestedSlug;
 
-        if (!await repository.SlugExistsAsync(baseSlug))
-            return baseSlug;
+        string slug;
+        do
+        {
+            slug = OrganizationSlug.WithRandomSuffix(requestedSlug);
+        } while (await repository.SlugExistsAsync(slug));
 
-        return $"{baseSlug}-{Guid.NewGuid().ToString("N")[..6]}";
+        return slug;
     }
 }

@@ -5,7 +5,7 @@ namespace AU.Application.Organizations.Queries.GetMyOrganizations;
 
 public class GetMyOrganizationsHandler
 {
-    public async Task<MyOrganizationsResponse> Handle(GetMyOrganizationsQuery query, IOrganizationRepository organizationRepository, ICurrentUser currentUser)
+    public async Task<MyOrganizationsResponse> Handle(GetMyOrganizationsQuery query, IOrganizationRepository organizationRepository, ICurrentUser currentUser, IFileStorage storage)
     {
         var organizations = await organizationRepository.GetForUserAsync(currentUser.UserId);
 
@@ -14,7 +14,8 @@ public class GetMyOrganizationsHandler
                 o.Id,
                 o.Name,
                 o.Slug,
-                o.Members.First(m => m.UserId == currentUser.UserId).Role))
+                o.Members.First(m => m.UserId == currentUser.UserId).Role,
+                storage.GetPublicUrlOrDefault(o.LogoKey)))
             .ToList();
 
         return new MyOrganizationsResponse(responses);

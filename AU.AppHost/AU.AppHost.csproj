@@ -7,7 +7,6 @@
         <Nullable>enable</Nullable>
         <AspireUseCliBundle>true</AspireUseCliBundle>
         <UserSecretsId>c8c7182b-be59-42d9-94d6-31a9d5f46481</UserSecretsId>
-        <RootNamespace>CCS.AppHost</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

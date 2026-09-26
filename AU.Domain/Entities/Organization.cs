@@ -12,6 +12,7 @@ public class Organization
     public string Name { get; private set; } = null!;
     public string Slug { get; private set; } = null!;
     public DateTimeOffset CreatedAt { get; private set; }
+    public string? LogoKey { get; private set; }
     
     public IReadOnlyCollection<OrganizationMember> Members => _members.AsReadOnly();
 
@@ -52,6 +53,28 @@ public class Organization
             throw new ArgumentException($"Organization name can be at most {MaxNameLength} characters.", nameof(name));
 
         Name = name.Trim();
+    }
+
+    public const int MaxLogoKeyLength = 300;
+
+    public string? ReplaceLogo(string logoKey)
+    {
+        if (string.IsNullOrWhiteSpace(logoKey))
+            throw new ArgumentException("Logo key is required.", nameof(logoKey));
+
+        if (logoKey.Length > MaxLogoKeyLength)
+            throw new ArgumentException($"Logo key can be at most {MaxLogoKeyLength} characters.", nameof(logoKey));
+
+        var previous = LogoKey;
+        LogoKey = logoKey;
+        return previous;
+    }
+
+    public string? RemoveLogo()
+    {
+        var previous = LogoKey;
+        LogoKey = null;
+        return previous;
     }
 
     public OrganizationMember? FindMember(Guid userId) =>

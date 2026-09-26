@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toastManager } from "@/components/ui/toast";
 import { api } from "@/lib/api/client";
 import { ApiError, ensureOk, unwrap } from "@/lib/api/errors";
+import { uploadOrganizationLogo } from "../lib/logo";
 import type { OrganizationRole } from "../lib/roles";
 import { organizationKeys } from "./keys";
 
@@ -48,6 +49,40 @@ export function useUpdateOrganization(organizationId: string) {
     onSuccess: () => {
       toastManager.add({ type: "success", title: "Organization updated" });
     },
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: organizationKeys.all }),
+  });
+}
+
+export function useUploadOrganizationLogo(organizationId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (file: File) => uploadOrganizationLogo(organizationId, file),
+    onSuccess: () => {
+      toastManager.add({ type: "success", title: "Logo updated" });
+    },
+    onError: toastError("Could not upload the logo"),
+    onSettled: () =>
+      queryClient.invalidateQueries({ queryKey: organizationKeys.all }),
+  });
+}
+
+export function useRemoveOrganizationLogo(organizationId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () =>
+      ensureOk(
+        api.DELETE("/api/organizations/{orgId}/logo", {
+          params: orgPath(organizationId),
+        }),
+        "Could not remove the logo.",
+      ),
+    onSuccess: () => {
+      toastManager.add({ type: "success", title: "Logo removed" });
+    },
+    onError: toastError("Could not remove the logo"),
     onSettled: () =>
       queryClient.invalidateQueries({ queryKey: organizationKeys.all }),
   });
