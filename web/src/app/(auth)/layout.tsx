@@ -17,7 +17,7 @@ export default function AuthLayout({
       </div>
       <div className="bg-muted relative hidden lg:block">
         <Image
-          src="/authentication-bg.png"
+          src="/authentication-bg.webp"
           alt="Image"
           width={1000}
           height={1000}
